@@ -1,0 +1,235 @@
+[
+  {
+    "id": "ifixit",
+    "name": "iFixit",
+    "url": "https://www.ifixit.com/",
+    "region": "global",
+    "actions": [
+      "repair"
+    ],
+    "description": "Free, community-written repair guides for phones, laptops and other electronics, plus repair parts and tools and a community forum.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "samsung-india-service-centre",
+    "name": "Samsung India - Find a Service Center",
+    "url": "https://www.samsung.com/in/support/service-center/",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Samsung India's official locator: choose a product category (e.g. mobile phone, TV, home appliance), enter a city, town or postcode and a search radius to find the nearest service centre.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "apple-india-repair",
+    "name": "Apple Support - Repair (India)",
+    "url": "https://support.apple.com/en-in/repair",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Apple's repair options for iPhone, Mac, iPad, Apple Watch and AirPods, with links to Apple Stores and Apple Authorised Service Providers and a way to check warranty or AppleCare coverage.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "karo-sambhav-collection-centres",
+    "name": "Karo Sambhav - E-Waste Collection Centres",
+    "url": "https://www.karosambhav.com/collection-centres",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Producer responsibility organisation listing e-waste collection centres in several states; accepts items such as laptops, printers and mobile phones.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "samsung-india-ewaste-takeback",
+    "name": "Samsung India - E-Waste Take-back and Recycling",
+    "url": "https://www.samsung.com/in/microsite/takeback-recycling/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Samsung India's programme to recycle old products via authorised recyclers; pick-up can be requested by WhatsApp.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "vivo-india-ewaste",
+    "name": "vivo India - E-Waste Take-back",
+    "url": "https://www.vivo.com/in/activity/E-Waste",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "vivo India's e-waste page: it works with CPCB-authorised PRO Karo Sambhav, and individual consumers can drop e-waste at its collection points.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "apple-india-recycling",
+    "name": "Apple India - Recycling",
+    "url": "https://www.apple.com/in/recycling/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Apple's India recycling page: devices you no longer use can be recycled, with links to the Apple Trade In and recycling programme pages.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "cpcb-e-waste",
+    "name": "CPCB - E-Waste Management",
+    "url": "https://cpcb.gov.in/e-waste-management/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "India's Central Pollution Control Board e-waste section: E-Waste (Management) Rules, notices on EPR authorisation, FAQs and technical guidelines; it does not list recyclers for households.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "apple-india-trade-in",
+    "name": "Apple Trade In (India)",
+    "url": "https://www.apple.com/in/shop/trade-in",
+    "region": "IN",
+    "actions": [
+      "resell"
+    ],
+    "description": "Get credit toward a new Apple device for an eligible old one, online (iPhone) or in an Apple Store; Mac, iPad and Apple Watch in store.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "samsung-india-exchange",
+    "name": "Samsung India - Exchange (Upgrade) Program",
+    "url": "https://www.samsung.com/in/offer/exchange-info/",
+    "region": "IN",
+    "actions": [
+      "resell"
+    ],
+    "description": "Terms of Samsung India's exchange program: trade an old phone toward a new Samsung device, with buyback by partner Cashify.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "cashify",
+    "name": "Cashify",
+    "url": "https://www.cashify.in/",
+    "region": "IN",
+    "actions": [
+      "resell"
+    ],
+    "description": "Indian platform to sell used phones, laptops, tablets, smartwatches and other gadgets; also sells refurbished devices and lists repair and phone recycling options.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "google-android-factory-reset",
+    "name": "Google - Reset your Android device to factory settings",
+    "url": "https://support.google.com/android/answer/6088915",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Android Help guide to backing up data and factory resetting an Android phone, including what you need (Google Account, screen lock) and how to reset if Settings won't open.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "apple-before-you-sell-iphone",
+    "name": "Apple - Before you sell, give away or trade in your iPhone or iPad",
+    "url": "https://support.apple.com/en-in/109511",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Apple Support steps to transfer data, unpair Apple Watch, sign out of accounts and use Erase All Content and Settings; also covers eSIM and Android trade-ins.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "apple-factory-reset-iphone",
+    "name": "Apple - How to factory reset your iPhone, iPad or iPod touch",
+    "url": "https://support.apple.com/en-in/108931",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Apple Support guide to erasing an iPhone, iPad or iPod touch via Settings, including backup, eSIM options and verification steps.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "apple-erase-mac",
+    "name": "Apple - Erase your Mac and reset it to factory settings",
+    "url": "https://support.apple.com/en-in/102664",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Apple Support guide to erasing a Mac with Erase All Content and Settings, with steps for older macOS versions and Macs without that feature.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "microsoft-reset-windows-pc",
+    "name": "Microsoft - Reset your PC",
+    "url": "https://support.microsoft.com/windows/0ef73740-b927-549b-b7c9-e6f2b48d275e",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Microsoft Support guide to resetting a Windows 10 or 11 PC, with 'Keep my files' or 'Remove everything' options; advises backing up and having your BitLocker recovery key ready.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "def-merabyte",
+    "name": "Digital Empowerment Foundation - MeraByte device donation",
+    "url": "https://defindia.org/merabyte/",
+    "region": "IN",
+    "actions": [
+      "donate"
+    ],
+    "description": "DEF collects old but functional mobile phones, tablets, laptops, pen drives, cameras and other digital devices from individuals for rural communities.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  }
+]
