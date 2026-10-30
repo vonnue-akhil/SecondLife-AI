@@ -1,6 +1,7 @@
 // API contract shared by the server and the client. Every type is inferred
 // from its Zod schema so the two sides cannot drift apart.
 import { z } from 'zod';
+import { STATE_CODES } from './india-states';
 
 // ---------------------------------------------------------------------------
 // Assistant turn (what the model produces, mock or real)
@@ -77,6 +78,20 @@ export const ResourceSchema = z.object({
 export type Resource = z.infer<typeof ResourceSchema>;
 
 // ---------------------------------------------------------------------------
+// Location (optional and coarse: coordinates never leave the device)
+// ---------------------------------------------------------------------------
+
+const PlaceNameSchema = z.string().trim().min(1).max(80).regex(/^[\p{L}\p{M}\p{N} .,'()&-]+$/u);
+
+export const UserLocationSchema = z.object({
+  state: z.enum(STATE_CODES),
+  district: PlaceNameSchema.nullable(), // from the on-device lookup only
+  place: PlaceNameSchema.nullable(), // the nearest town, or a city the user typed
+  source: z.enum(['device', 'manual']),
+});
+export type UserLocation = z.infer<typeof UserLocationSchema>;
+
+// ---------------------------------------------------------------------------
 // API: requests and responses
 // ---------------------------------------------------------------------------
 
@@ -97,6 +112,18 @@ export type ChatResponse = z.infer<typeof ChatResponseSchema>;
 export const ChatFieldsSchema = z.object({
   message: z.string().trim().max(2000).default(''),
   conversationId: z.string().trim().min(1).max(100).optional(),
+  // JSON-encoded UserLocation, sent only when the user has shared one. A malformed value is dropped
+  // rather than failing the message.
+  location: z
+    .preprocess((v) => {
+      try {
+        return typeof v === 'string' ? JSON.parse(v) : v;
+      } catch {
+        return v;
+      }
+    }, UserLocationSchema)
+    .optional()
+    .catch(undefined),
 });
 export type ChatFields = z.infer<typeof ChatFieldsSchema>;
 

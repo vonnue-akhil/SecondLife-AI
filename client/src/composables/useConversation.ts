@@ -9,6 +9,7 @@ import {
   type ModeBadgeState,
 } from '../lib/presentation';
 import type { ReadyAttachment } from './useComposer';
+import { useLocation } from './useLocation';
 
 /** A photo as the client holds it: an object URL of exactly the bytes that were uploaded. */
 export interface Photo {
@@ -54,6 +55,7 @@ const sending = ref(false);
 const health = shallowRef<HealthResponse | null>(null);
 const healthStatus = ref<'checking' | 'ok' | 'error'>('checking');
 const outcome = ref<OutcomeState>({ recorded: null, saving: null, error: null });
+const { location } = useLocation();
 
 let inflight: AbortController | null = null;
 let outcomeInflight: AbortController | null = null;
@@ -126,7 +128,12 @@ async function dispatch(id: string) {
 
   try {
     const response = await sendChat(
-      { message: entry.text, conversationId: conversationId.value ?? undefined, image: entry.file ?? undefined },
+      {
+        message: entry.text,
+        conversationId: conversationId.value ?? undefined,
+        image: entry.file ?? undefined,
+        location: location.value ?? undefined,
+      },
       controller.signal,
     );
     if (controller.signal.aborted) return;

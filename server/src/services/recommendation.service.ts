@@ -1,4 +1,4 @@
-import { ZodError } from 'zod';
+import { z, ZodError } from 'zod';
 import { AssistantTurnSchema, type AssistantTurn } from '../../../shared/schemas';
 import { AppError } from '../middleware/errors';
 
@@ -24,8 +24,7 @@ function normalise(turn: AssistantTurn): AssistantTurn {
 export function normaliseTurn(candidate: unknown): AssistantTurn {
   const parsed = AssistantTurnSchema.safeParse(candidate);
   if (!parsed.success) {
-    // Phase 4: for real models, make one repair call here (send the invalid output and the Zod error,
-    // ask for corrected JSON only) and fall back to fallbackTurn() if it still fails.
+    // Real providers have already made their one repair call (see providers/muse), so this is final.
     console.error('[turn] invalid assistant turn:', parsed.error.message);
     throw new AppError('PROVIDER_ERROR', 502, "The assistant's reply could not be read. Please try again.");
   }
@@ -33,7 +32,7 @@ export function normaliseTurn(candidate: unknown): AssistantTurn {
 }
 
 /** For model output: strips code fences and text outside the outermost JSON object, parses, and validates. */
-export function parseModelOutput(raw: string): AssistantTurn | ZodError {
+export function parseModelOutput<S extends z.ZodType>(raw: string, schema: S): z.output<S> | ZodError {
   const start = raw.indexOf('{');
   const end = raw.lastIndexOf('}');
   const json = start >= 0 && end > start ? raw.slice(start, end + 1) : raw.replace(/```(?:json)?/gi, '').trim();
@@ -43,7 +42,7 @@ export function parseModelOutput(raw: string): AssistantTurn | ZodError {
   } catch {
     value = null; // reported by the schema as an invalid type
   }
-  const parsed = AssistantTurnSchema.safeParse(value);
+  const parsed = schema.safeParse(value);
   return parsed.success ? parsed.data : parsed.error;
 }
 

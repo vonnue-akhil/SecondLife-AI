@@ -5,6 +5,7 @@ import { useComposer } from '../composables/useComposer';
 import { useConversation } from '../composables/useConversation';
 import { ACCEPTED_IMAGE_TYPES } from '../lib/image';
 import { SAMPLE_PHOTOS } from '../lib/samples';
+import LocationPicker from './LocationPicker.vue';
 
 const props = withDefaults(defineProps<{ variant?: 'hero' | 'docked'; autofocus?: boolean }>(), {
   variant: 'docked',
@@ -152,6 +153,7 @@ defineExpose({ focus: () => textarea.value?.focus() });
             <ImagePlus class="size-5" aria-hidden="true" />
             <span v-if="isHero" aria-hidden="true">Add photo</span>
           </button>
+          <LocationPicker :variant="variant" :disabled="sending" />
           <input
             ref="fileInput"
             type="file"

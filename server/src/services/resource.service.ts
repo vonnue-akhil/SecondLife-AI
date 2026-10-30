@@ -10,9 +10,13 @@ const resources: Resource[] = z.array(ResourceSchema).parse(resourcesJson);
 const sameRegion = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 const isGlobal = (r: Resource) => sameRegion(r.region, 'global');
 
-/** Entries for the region first, then global ones. */
+/** "IN-KL" -> ["IN-KL", "IN"]: a state's own entries come before the country's. */
+const regionChain = (region: string) => region.split('-').map((_, i, parts) => parts.slice(0, i + 1).join('-')).reverse();
+
+/** Entries for the region (most specific first), then global ones. */
 function forRegion(list: Resource[], region: string): Resource[] {
-  return [...new Set([...list.filter((r) => sameRegion(r.region, region)), ...list.filter(isGlobal)])];
+  const regional = regionChain(region).flatMap((code) => list.filter((r) => sameRegion(r.region, code)));
+  return [...new Set([...regional, ...list.filter(isGlobal)])];
 }
 
 /** Up to three entries per action, in the order of the actions, without duplicates. */

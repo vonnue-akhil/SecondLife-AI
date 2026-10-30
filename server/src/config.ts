@@ -29,7 +29,7 @@ const EnvSchema = z.object({
   MUSE_HOST: z.preprocess(blankToUndefined, z.enum(['meta', 'baseten']).default('meta')),
   MODEL_API_KEY: optionalString,
   META_API_BASE_URL: withDefault('https://api.meta.ai/v1'),
-  META_MODEL_ID: withDefault('muse-spark-1.1'),
+  META_MODEL_ID: withDefault('muse-spark-1.3'),
   BASETEN_API_KEY: optionalString,
   BASETEN_BASE_URL: withDefault('https://inference.baseten.co/v1'),
   BASETEN_MODEL_ID: withDefault('meta-models/muse-spark-open-1026'),

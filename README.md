@@ -26,6 +26,7 @@ SecondLife AI turns that decision into a short conversation:
 
 - **Chat workspace** with suggested prompts, quick-reply chips, a typing indicator, follow-up questions after a recommendation, a "New conversation" control and a model badge in the header. Built mobile-first.
 - **Photo upload** by file picker, drag-and-drop or paste. The browser resizes the photo (longest side at most 1600 px) and re-encodes it as JPEG, which strips EXIF metadata such as GPS location. HEIC photos the browser can't open get a clear message. The server checks size, type and file signature, and keeps images in memory only.
+- **Optional location, worked out on the device.** "Use my current location" asks the browser for its position, then finds the nearest Indian town, its district and its state on the device, using a bundled GeoNames table that loads only when needed. Only the town, district and state are sent, never coordinates, and positions outside India are refused. Users can instead pick a state and type a city. The area is remembered on the device until removed, passed to the assistant as context, and used to put state-specific resources first.
 - **Damage overlay.** Damage regions are drawn as translucent, labelled masks on an SVG layer over the user's own photo, with a hide/show toggle. Three bundled sample photos (cracked phone, swollen battery, old tablet) let you try it without a broken device.
 - **Bounded questioning.** At most three follow-up questions, one per turn. If the user doesn't know an answer, the assistant recommends anyway and states the uncertainty.
 - **Ranked recommendations** across repair, reuse, donate, resell, recycle and "stop using it": a primary card for the top option and expandable cards for alternatives.
@@ -38,7 +39,7 @@ SecondLife AI turns that decision into a short conversation:
 
 ### Planned
 
-- **Muse Spark** (Meta Model API, or Muse Spark Open on Baseten): reading the photo, choosing which damage to look for, asking follow-ups and returning ranked recommendations as structured output, with tool calls and web search for cited local resources.
+- **Muse Spark** (`muse-spark-1.3` on the Meta Model API): reading the photo, choosing which damage to look for, asking follow-ups and returning ranked recommendations as structured output. The provider for this is written but has not yet been tested against the live API. Tool calls and web search for cited local resources come after that.
 - **SAM 3** on a Modal serverless GPU (`sam3-modal/`): segmenting the damage Muse Spark names, on any user photo.
 - Public deployment, screenshots and a demo video.
 
@@ -68,7 +69,7 @@ One repository and one deployable Node service: Express serves the API and, in p
 ```mermaid
 flowchart TD
     UI["Vue chat UI<br/>photo resized + EXIF stripped in the browser"]
-    UI -->|"POST /api/v1/chat<br/>multipart: message, conversationId, image"| UP["Upload check<br/>size, type, file signature"]
+    UI -->|"POST /api/v1/chat<br/>multipart: message, conversationId, image, location"| UP["Upload check<br/>size, type, file signature"]
     UP --> S["Session<br/>in memory, 2 h expiry"]
     S -->|"turn with a photo"| OBS["Muse Spark: observe the photo<br/>→ damage concepts (in progress)"]
     OBS --> SEG["SAM 3: segment those concepts<br/>→ polygons, 10 s timeout (in progress)"]
@@ -99,8 +100,8 @@ All endpoints are under `/api/v1`. Errors use the shape `{ error: { code, messag
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/health` | `{ ok, provider, isMock, supportsImages }`, used for the header badge |
-| `POST` | `/chat` | `multipart/form-data` with `message`, optional `conversationId` and optional `image`. Returns the assistant turn, resources, damage regions and provider names |
-| `GET` | `/resources?region=IN&action=recycle` | Curated resources, optionally filtered by region and action |
+| `POST` | `/chat` | `multipart/form-data` with `message`, optional `conversationId`, optional `image` and optional `location` (JSON: `{ state, district, place, source }`, where `state` is a two-letter code such as `KL`; a malformed value is ignored). Returns the assistant turn, resources, damage regions and provider names |
+| `GET` | `/resources?region=IN&action=recycle` | Curated resources, optionally filtered by region and action. A state region such as `IN-KL` also includes `IN` and global entries, most specific first |
 | `POST` | `/outcomes` | Records `{ conversationId, outcome }` (`repaired`, `reused`, `donated`, `sold`, `recycled`, `undecided`) |
 
 ## Getting started
@@ -172,7 +173,7 @@ Settings are read from `.env` in the repository root; [`.env.example`](.env.exam
 | `MUSE_HOST` | `meta` | Where Muse Spark runs: `meta` (Meta Model API) or `baseten` (Muse Spark Open) |
 | `MODEL_API_KEY` | — | Meta Model API key. Server-side only |
 | `META_API_BASE_URL` | `https://api.meta.ai/v1` | Meta Model API base URL |
-| `META_MODEL_ID` | `muse-spark-1.1` | Muse Spark model ID on the Meta host (to be confirmed) |
+| `META_MODEL_ID` | `muse-spark-1.3` | Muse Spark model ID on the Meta host |
 | `BASETEN_API_KEY` | — | Baseten API key. Server-side only |
 | `BASETEN_BASE_URL` | `https://inference.baseten.co/v1` | Baseten base URL |
 | `BASETEN_MODEL_ID` | `meta-models/muse-spark-open-1026` | Muse Spark Open model ID on Baseten (to be confirmed) |
@@ -195,11 +196,20 @@ SecondLife AI uses **Meta models only**, chained in one bounded loop:
 | Grounded resources | Muse Spark web search | Local repair, donation and recycling options, accepted only with a citation |
 | Damage localisation | SAM 3 | Segments the damage concepts Muse Spark names, for the photo overlay |
 
-The integrations are in progress. The exact model IDs, image input, structured-output, tool-calling, web-search and reasoning-control support for each host will be confirmed from the official docs and recorded here.
+The integrations are in progress. The Muse Spark provider is written but has not yet been tested against the live Meta Model API. These details are confirmed from [Meta's developer docs](https://dev.meta.ai/docs), with how the code uses them:
+
+- **Model:** `muse-spark-1.3`, the version Meta recommends for new work. We avoid the cheaper "contributor" variants, which allow Meta to train on what is sent, because requests include users' photos.
+- **Endpoint:** the OpenAI-compatible Chat Completions endpoint, `POST https://api.meta.ai/v1/chat/completions`, with a bearer token. The server calls it with plain `fetch`.
+- **Photos:** sent as a base64 data URL in an `image_url` part of the user message.
+- **Structured output:** `response_format` with a strict JSON schema generated from the shared Zod schemas (`DeviceObservations` for the photo, `AssistantTurn` for each reply). Replies are still validated, and an invalid one gets one repair request listing the validation errors.
+- **Reasoning:** Muse Spark always reasons. The server asks for `reasoning_effort: "low"` to keep turns quick.
+- **Tool calling:** supported on Chat Completions (`tool_choice` must be `"auto"`). Not used yet.
+- **Web search:** a built-in tool on Meta's Responses API only, with citations returned as URL annotations. Not used yet.
 
 ### What is already in place
 
 - The provider interfaces and the response contract (`AssistantTurn` in `shared/schemas.ts`), which both providers must satisfy.
+- The Muse Spark provider (`server/src/providers/muse/`): prompts, photo observations and conversation turns through structured output, one repair request for an invalid reply, and timeouts that fit within the browser's 70-second limit.
 - Validation and normalisation of every turn, plus a parser for raw model output that strips code fences and stray text before validating.
 - The deterministic safety layer and curated resources, which run whatever a model returns.
 
@@ -210,6 +220,7 @@ The integrations are in progress. The exact model IDs, image input, structured-o
 - The assistant never states repair costs, resale prices, availability or environmental figures. It says what would determine them and how to find out.
 - Images are resized and stripped of metadata in the browser, held in server memory for the current request only, and never written to disk or logs.
 - Conversations live in server memory, expire after 2 hours of inactivity and keep the last 20 messages.
+- Location is optional and coarse. The nearest town is looked up on the device, and only the town, district and state reach the server and the model. The location is not logged.
 
 ## Project structure
 
@@ -221,17 +232,23 @@ The integrations are in progress. The exact model IDs, image input, structured-o
 │       ├── App.vue            Layout: landing vs conversation, drag-and-drop and paste
 │       ├── components/        Composer, messages, damage overlay, recommendation cards,
 │       │                      safety banner, resource links, outcome picker, …
-│       ├── composables/       Conversation and composer state
-│       └── lib/               API client, image processing, display helpers, sample list
+│       ├── composables/       Conversation, composer and location state
+│       ├── data/              india-places.json: offline town → district → state table (generated)
+│       └── lib/               API client, image processing, on-device place lookup, display helpers, sample list
 ├── server/src/
 │   ├── index.ts, app.ts       Entry point; Express app, /api/v1 routes, production static hosting
 │   ├── config.ts              Validated environment configuration and constants
 │   ├── routes/                health, chat, resources, outcomes
 │   ├── middleware/            Upload validation, error responses
 │   ├── providers/             AssessmentProvider and SegmentationProvider interfaces and implementations
+│   │   └── muse/              Muse Spark: Chat Completions client and prompts
 │   ├── services/              Conversation flow, response validation, safety, resources, session store
 │   └── data/                  Curated resources and sample-photo data
-├── shared/schemas.ts          API contract: Zod schemas and inferred types
+├── shared/
+│   ├── schemas.ts             API contract: Zod schemas and inferred types
+│   └── india-states.ts        The 36 states and union territories with their two-letter codes
+├── scripts/
+│   └── build-india-places.ts  Regenerates client/src/data/india-places.json from GeoNames
 └── .env.example               Every server setting, documented
 ```
 
@@ -239,18 +256,21 @@ The integrations are in progress. The exact model IDs, image input, structured-o
 
 ### Current limitations
 
-- **Meta integration in progress.** Replies are not generated by a model yet.
+- **Meta integration in progress.** The Muse Spark provider has not yet been tested against the live Meta API, so replies are not generated by a model yet.
 - **Damage highlights only on the sample photos.** Until SAM 3 is connected, the overlay appears only on the three bundled sample photos.
 - **Resources need checking.** The curated list was compiled from official pages but has not yet been hand-verified by the team. Services, coverage and terms can change.
 - **No prices.** The assistant does not estimate repair costs or resale prices.
 - **In-memory storage.** Conversations and outcomes are lost when the server restarts, and it runs as a single instance.
 - **Pattern-based hazard detection.** Designed for English text and may miss unusual phrasing.
 - **India only.** The UI is English-only and resources cover India plus a few global guides.
+- **No state-level resources yet.** State-specific resources are supported (`"region": "IN-KL"` in `resources.json`), but none have been added yet, so a shared location currently changes the assistant's advice, not the links shown.
+- **Approximate place names.** The nearest town comes from GeoNames towns with at least 5,000 people, so a suburb may show as a neighbouring town, and some district names use older spellings (e.g. "Bangalore Urban").
 - **No automated tests or rate limiting.**
 
 ### Next up
 
-- Muse Spark and SAM 3 integration through the existing provider interfaces.
+- Test Muse Spark against the live Meta Model API, then add tool calling and web search for cited local resources.
+- SAM 3 integration through the existing segmentation interface.
 - Deploy a public demo and add screenshots and a demo video.
 
 ### Later ideas
@@ -269,7 +289,7 @@ The integrations are in progress. The exact model IDs, image input, structured-o
 
 ## License
 
-No license has been chosen for the code yet. The sample photos keep their own licences (public domain and CC BY-SA); see [`client/public/samples/CREDITS.md`](client/public/samples/CREDITS.md).
+No license has been chosen for the code yet. The sample photos keep their own licences (public domain and CC BY-SA); see [`client/public/samples/CREDITS.md`](client/public/samples/CREDITS.md). The town and district table in `client/src/data/india-places.json` is derived from [GeoNames](https://www.geonames.org/) data, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 ## Hackathon
 

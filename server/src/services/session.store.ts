@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { AssistantTurn, DamageRegion, DeviceObservations, OutcomeValue } from '../../../shared/schemas';
+import type { AssistantTurn, DamageRegion, DeviceObservations, OutcomeValue, UserLocation } from '../../../shared/schemas';
 import { MAX_HISTORY_MESSAGES, SESSION_TTL_MS } from '../config';
 
 export interface Session {
@@ -11,6 +11,7 @@ export interface Session {
   followUpsAsked: number;
   lastRecommendation: AssistantTurn | null;
   outcome: OutcomeValue | null;
+  location: UserLocation | null; // as last sent by the client
 }
 
 // In-memory only. Image bytes are never stored here.
@@ -26,6 +27,7 @@ export function createSession(): Session {
     followUpsAsked: 0,
     lastRecommendation: null,
     outcome: null,
+    location: null,
   };
   sessions.set(session.id, { session, lastActive: Date.now() });
   return session;

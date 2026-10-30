@@ -4,6 +4,7 @@ import type {
   ChatResponse,
   HealthResponse,
   OutcomeValue,
+  UserLocation,
 } from '../../../shared/schemas';
 
 const API_BASE = '/api/v1';
@@ -146,6 +147,8 @@ export interface ChatPayload {
   conversationId?: string;
   /** Already processed (or a byte-for-byte sample photo). */
   image?: File;
+  /** Town, district and state only: never coordinates. */
+  location?: UserLocation;
 }
 
 export async function sendChat(payload: ChatPayload, signal?: AbortSignal): Promise<ChatResponse> {
@@ -153,6 +156,7 @@ export async function sendChat(payload: ChatPayload, signal?: AbortSignal): Prom
   const form = new FormData();
   form.append('message', payload.message);
   if (payload.conversationId) form.append('conversationId', payload.conversationId);
+  if (payload.location) form.append('location', JSON.stringify(payload.location));
   if (payload.image) form.append('image', payload.image, payload.image.name);
   const body = await request('/chat', { method: 'POST', body: form }, CHAT_TIMEOUT_MS, signal);
   return normaliseChat(body);

@@ -1,4 +1,4 @@
-import type { ChatResponse, DamageRegion, DeviceObservations } from '../../../shared/schemas';
+import type { ChatResponse, DamageRegion, DeviceObservations, UserLocation } from '../../../shared/schemas';
 import { DEFAULT_REGION, MIN_REGION_SCORE } from '../config';
 import { AppError } from '../middleware/errors';
 import { assessmentProvider, segmentationProvider } from '../providers';
@@ -52,12 +52,14 @@ export async function runChatTurn(input: {
   message: string;
   conversationId?: string;
   image: PreparedImage | null;
+  location: UserLocation | null;
 }): Promise<ChatResponse> {
-  const { message, conversationId, image } = input;
+  const { message, conversationId, image, location } = input;
 
   // Load or create the session; work on a copy so a failed request leaves the stored one untouched.
   const existing = conversationId ? getSession(conversationId) : null;
   const session: Session = existing ? structuredClone(existing) : createSession();
+  session.location = location;
 
   let imageAnalysed = false;
   let newRegions: DamageRegion[] = [];
@@ -101,7 +103,10 @@ export async function runChatTurn(input: {
 
   const turn = applySafety(normaliseTurn(candidate), hazard);
   const resources = turn.stage === 'recommending'
-    ? resourcesForActions(turn.recommendations.map((r) => r.action), DEFAULT_REGION)
+    ? resourcesForActions(
+        turn.recommendations.map((r) => r.action),
+        session.location ? `${DEFAULT_REGION}-${session.location.state}` : DEFAULT_REGION,
+      )
     : [];
 
   session.messages.push({

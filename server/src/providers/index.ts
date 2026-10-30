@@ -1,11 +1,19 @@
 import { env } from '../config';
 import { mockAssessmentProvider } from './mock/assessment.provider';
 import { mockSegmentationProvider } from './mock/segmentation.provider';
+import { createMuseAssessmentProvider } from './muse/assessment.provider';
+import { museHost } from './muse/client';
 import type { AssessmentProvider, SegmentationProvider } from './types';
 
 function chooseAssessment(): AssessmentProvider {
   if (env.AI_PROVIDER === 'muse') {
-    console.warn('[providers] Muse Spark provider is not built yet; using the scripted demo');
+    const host = museHost();
+    if (host) {
+      console.log(`[providers] Muse Spark: ${host.model} via ${host.label}`);
+      return createMuseAssessmentProvider(host);
+    }
+    const key = env.MUSE_HOST === 'baseten' ? 'BASETEN_API_KEY' : 'MODEL_API_KEY';
+    console.warn(`[providers] AI_PROVIDER=muse but ${key} is not set; using the scripted demo`);
   }
   return mockAssessmentProvider;
 }
