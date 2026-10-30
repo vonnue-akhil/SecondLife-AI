@@ -1,0 +1,966 @@
+[
+  {
+    "id": "ifixit",
+    "name": "iFixit",
+    "url": "https://www.ifixit.com/",
+    "region": "global",
+    "actions": [
+      "repair"
+    ],
+    "description": "Free, community-written repair guides for phones, laptops and other electronics, plus repair parts and tools and a community forum.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "samsung-india-service-centre",
+    "name": "Samsung India - Find a Service Center",
+    "url": "https://www.samsung.com/in/support/service-center/",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Samsung India's official locator: choose a product category (e.g. mobile phone, TV, home appliance), enter a city, town or postcode and a search radius to find the nearest service centre.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "samsung"
+    ]
+  },
+  {
+    "id": "apple-india-repair",
+    "name": "Apple Support - Repair (India)",
+    "url": "https://support.apple.com/en-in/repair",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Apple's repair options for iPhone, Mac, iPad, Apple Watch and AirPods, with links to Apple Stores and Apple Authorised Service Providers and a way to check warranty or AppleCare coverage.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "apple"
+    ]
+  },
+  {
+    "id": "karo-sambhav-collection-centres",
+    "name": "Karo Sambhav - E-Waste Collection Centres",
+    "url": "https://www.karosambhav.com/collection-centres",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Producer responsibility organisation listing e-waste collection centres in several states; accepts items such as laptops, printers and mobile phones.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "samsung-india-ewaste-takeback",
+    "name": "Samsung India - E-Waste Take-back and Recycling",
+    "url": "https://www.samsung.com/in/microsite/takeback-recycling/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Samsung India's programme to recycle old products via authorised recyclers; pick-up can be requested by WhatsApp.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "samsung"
+    ]
+  },
+  {
+    "id": "vivo-india-ewaste",
+    "name": "vivo India - E-Waste Take-back",
+    "url": "https://www.vivo.com/in/activity/E-Waste",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "vivo India's e-waste page: it works with CPCB-authorised PRO Karo Sambhav, and individual consumers can drop e-waste at its collection points.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "vivo"
+    ]
+  },
+  {
+    "id": "apple-india-recycling",
+    "name": "Apple India - Recycling",
+    "url": "https://www.apple.com/in/recycling/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Apple's India recycling page: devices you no longer use can be recycled, with links to the Apple Trade In and recycling programme pages.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "apple"
+    ]
+  },
+  {
+    "id": "cpcb-e-waste",
+    "name": "CPCB - E-Waste Management",
+    "url": "https://cpcb.gov.in/e-waste-management/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "India's Central Pollution Control Board e-waste section: E-Waste (Management) Rules, notices on EPR authorisation, FAQs and technical guidelines; it does not list recyclers for households.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "apple-india-trade-in",
+    "name": "Apple Trade In (India)",
+    "url": "https://www.apple.com/in/shop/trade-in",
+    "region": "IN",
+    "actions": [
+      "resell"
+    ],
+    "description": "Get credit toward a new Apple device for an eligible old one, online (iPhone) or in an Apple Store; Mac, iPad and Apple Watch in store.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "apple"
+    ]
+  },
+  {
+    "id": "samsung-india-exchange",
+    "name": "Samsung India - Exchange (Upgrade) Program",
+    "url": "https://www.samsung.com/in/offer/exchange-info/",
+    "region": "IN",
+    "actions": [
+      "resell"
+    ],
+    "description": "Terms of Samsung India's exchange program: trade an old phone toward a new Samsung device, with buyback by partner Cashify.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "samsung"
+    ]
+  },
+  {
+    "id": "cashify",
+    "name": "Cashify",
+    "url": "https://www.cashify.in/",
+    "region": "IN",
+    "actions": [
+      "resell"
+    ],
+    "description": "Indian platform to sell used phones, laptops, tablets, smartwatches and other gadgets; also sells refurbished devices and lists repair and phone recycling options.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "google-android-factory-reset",
+    "name": "Google - Reset your Android device to factory settings",
+    "url": "https://support.google.com/android/answer/6088915",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Android Help guide to backing up data and factory resetting an Android phone, including what you need (Google Account, screen lock) and how to reset if Settings won't open.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "samsung",
+      "xiaomi",
+      "vivo",
+      "oppo",
+      "realme",
+      "oneplus",
+      "motorola",
+      "nokia",
+      "google",
+      "lenovo"
+    ]
+  },
+  {
+    "id": "apple-before-you-sell-iphone",
+    "name": "Apple - Before you sell, give away or trade in your iPhone or iPad",
+    "url": "https://support.apple.com/en-in/109511",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Apple Support steps to transfer data, unpair Apple Watch, sign out of accounts and use Erase All Content and Settings; also covers eSIM and Android trade-ins.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "apple"
+    ]
+  },
+  {
+    "id": "apple-factory-reset-iphone",
+    "name": "Apple - How to factory reset your iPhone, iPad or iPod touch",
+    "url": "https://support.apple.com/en-in/108931",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Apple Support guide to erasing an iPhone, iPad or iPod touch via Settings, including backup, eSIM options and verification steps.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "apple"
+    ]
+  },
+  {
+    "id": "apple-erase-mac",
+    "name": "Apple - Erase your Mac and reset it to factory settings",
+    "url": "https://support.apple.com/en-in/102664",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Apple Support guide to erasing a Mac with Erase All Content and Settings, with steps for older macOS versions and Macs without that feature.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "apple"
+    ]
+  },
+  {
+    "id": "microsoft-reset-windows-pc",
+    "name": "Microsoft - Reset your PC",
+    "url": "https://support.microsoft.com/windows/0ef73740-b927-549b-b7c9-e6f2b48d275e",
+    "region": "global",
+    "actions": [
+      "donate",
+      "resell"
+    ],
+    "description": "Microsoft Support guide to resetting a Windows 10 or 11 PC, with 'Keep my files' or 'Remove everything' options; advises backing up and having your BitLocker recovery key ready.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "dell",
+      "hp",
+      "lenovo",
+      "asus",
+      "acer",
+      "microsoft",
+      "sony",
+      "lg"
+    ]
+  },
+  {
+    "id": "def-merabyte",
+    "name": "Digital Empowerment Foundation - MeraByte device donation",
+    "url": "https://defindia.org/merabyte/",
+    "region": "IN",
+    "actions": [
+      "donate"
+    ],
+    "description": "DEF collects old but functional mobile phones, tablets, laptops, pen drives, cameras and other digital devices from individuals for rural communities.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null
+  },
+  {
+    "id": "lg-india-repair-center-locator",
+    "name": "LG India - Repair Service Center Locator",
+    "url": "https://www.lg.com/in/support/contact-us/locate-repair-center/",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "LG India's page for locating a repair service center.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "lg"
+    ]
+  },
+  {
+    "id": "lg-india-recycling",
+    "name": "LG India - Recycling Program",
+    "url": "https://www.lg.com/in/recycling/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "LG India's recycling program page for end-of-life electronics and e-waste.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "lg"
+    ]
+  },
+  {
+    "id": "whirlpool-india-customer-care",
+    "name": "Whirlpool India - Customer Care and Service",
+    "url": "https://india.whirlpool.in/customer-care-service",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Whirlpool India's customer care page with service and support contact options.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "whirlpool"
+    ]
+  },
+  {
+    "id": "godrej-appliances-support",
+    "name": "Godrej - Appliance Support",
+    "url": "https://www.godrejenterprises.com/support",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Godrej's support page with service request tracking and per-appliance support for refrigerators, washing machines, air conditioners and more.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "godrej"
+    ]
+  },
+  {
+    "id": "godrej-appliances-green-think",
+    "name": "Godrej - Green Think E-waste Information",
+    "url": "https://www.godrejenterprises.com/green-think",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Godrej's Green Think page on appliance recycling and e-waste management, with a contact number and links to collection point information.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "godrej"
+    ]
+  },
+  {
+    "id": "voltas-service-portal",
+    "name": "Voltas - Selfcare Service Portal",
+    "url": "https://www.voltasservice.com/",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Voltas Selfcare portal, linked from the Voltas website for service requests and product registration.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "voltas"
+    ]
+  },
+  {
+    "id": "voltas-ewaste",
+    "name": "Voltas - E-waste Disclaimer",
+    "url": "https://www.voltas.com/pages/e-waste-disclaimer",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Voltas statement on its commitment to the E-Waste Rules and its tie-up with authorised e-waste recyclers for disposal of end-of-life products.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "voltas"
+    ]
+  },
+  {
+    "id": "bajaj-electricals-service-request",
+    "name": "Bajaj Electricals India - Service Request Form",
+    "url": "https://www.bajajelectricals.com/pages/service-request-form",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Form to request a complaint, demo or installation call for Bajaj, Morphy Richards and Nex Life products.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "bajaj"
+    ]
+  },
+  {
+    "id": "havells-service-request",
+    "name": "Havells India - Service Request",
+    "url": "https://havells.com/service-request",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Page to view existing service requests and raise a new one for a Havells product.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "havells"
+    ]
+  },
+  {
+    "id": "havells-ewaste",
+    "name": "Havells India - E-waste Awareness",
+    "url": "https://havells.com/e-waste-awareness",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Havells page on take-back and recycling of end-of-life products through authorised recyclers, with contact details for disposal.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "havells"
+    ]
+  },
+  {
+    "id": "haier-india-service-support",
+    "name": "Haier India - Service and Support",
+    "url": "https://www.haier.com/in/service-support/",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Haier India's service and support hub for washing machines, ACs and refrigerators, with service appointment and warranty links.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "haier"
+    ]
+  },
+  {
+    "id": "haier-india-ewaste",
+    "name": "Haier India - E-waste Guidelines",
+    "url": "https://www.haier.com/in/e-waste-guidelines/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Haier India's e-waste guideline page.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "haier"
+    ]
+  },
+  {
+    "id": "ifb-india-support",
+    "name": "IFB - Product Support",
+    "url": "https://www.ifbappliances.com/support",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "IFB's support page with service ticket raising and status, warranty, manuals and troubleshooting.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "ifb"
+    ]
+  },
+  {
+    "id": "ifb-india-ewaste",
+    "name": "IFB - E-waste Recycling and Disposal",
+    "url": "https://www.ifbappliances.com/e-waste",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "IFB's page on responsible recycling and disposal of electronics.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "ifb"
+    ]
+  },
+  {
+    "id": "daikin-india-service-request",
+    "name": "Daikin India - Service Request",
+    "url": "https://daikinindia.com/service-request",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Daikin India's online AC service request page.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "daikin"
+    ]
+  },
+  {
+    "id": "daikin-india-ewaste",
+    "name": "Daikin India - E-waste",
+    "url": "https://daikinindia.com/e-waste",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Daikin India's e-waste information page.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "daikin"
+    ]
+  },
+  {
+    "id": "bluestar-india-service-solutions",
+    "name": "Blue Star India - Service Solutions",
+    "url": "https://www.bluestarindia.com/service-solutions",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Blue Star's page on installation and maintenance services for air conditioning and refrigeration products.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "bluestar"
+    ]
+  },
+  {
+    "id": "bluestar-india-ewaste",
+    "name": "Blue Star India - E-waste Guidelines and Recycling",
+    "url": "https://www.bluestarindia.com/e-waste-guidelines",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Blue Star's e-waste guidelines for customers on recycling old air conditioners and other products.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "bluestar"
+    ]
+  },
+  {
+    "id": "panasonic-india-service-centers",
+    "name": "Panasonic India - Service Centers",
+    "url": "https://store.in.panasonic.com/service-centers",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Panasonic India store's service center directory, searched by zone and state.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "panasonic"
+    ]
+  },
+  {
+    "id": "philips-india-support",
+    "name": "Philips India - Customer Service and Support",
+    "url": "https://www.philips.co.in/c-s/support",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Philips India's customer service and support page.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "philips"
+    ]
+  },
+  {
+    "id": "crompton-service-center",
+    "name": "Crompton - Service Center and Support",
+    "url": "https://www.crompton.co.in/pages/service-center",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Crompton's page to find a service center and get support.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "crompton"
+    ]
+  },
+  {
+    "id": "crompton-epr",
+    "name": "Crompton - EPR Policy",
+    "url": "https://www.crompton.co.in/pages/epr-policy",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Crompton's EPR policy page describing its e-waste collection and recycling mechanism, with a list of collection points and a helpline.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "crompton"
+    ]
+  },
+  {
+    "id": "hitachi-india-contact-service",
+    "name": "Hitachi India (Air Conditioners) - Contact and Service",
+    "url": "https://www.hitachiaircon.com/in/contact-us",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Hitachi India's air conditioner contact page with customer care and service support details and links to service and installation requests.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "hitachi"
+    ]
+  },
+  {
+    "id": "xiaomi-india-service-center",
+    "name": "Xiaomi India - Service Center",
+    "url": "https://www.mi.com/in/service/service-center/",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Xiaomi India's service center page.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "xiaomi"
+    ]
+  },
+  {
+    "id": "xiaomi-india-ewaste",
+    "name": "Xiaomi India - E-waste Management",
+    "url": "https://www.mi.com/in/support/guidance/ewastetakeback/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Xiaomi India's e-waste management page describing its work with producer responsibility organisations on collection of end-of-life products.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "xiaomi"
+    ]
+  },
+  {
+    "id": "xiaomi-india-exchange",
+    "name": "Xiaomi India - Mi Exchange",
+    "url": "https://www.mi.com/in/miexchange",
+    "region": "IN",
+    "actions": [
+      "resell"
+    ],
+    "description": "Xiaomi India's exchange program page for trading in an old phone toward a new smartphone.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "xiaomi"
+    ]
+  },
+  {
+    "id": "dell-india-recycling",
+    "name": "Dell India - Recovery and Recycling for Consumers",
+    "url": "https://www.dell.com/en-in/learn/our-company/lp/recycling/recovery-recycling-consumer-solutions",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Dell India's page on responsible recovery and recycling solutions for consumers.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "dell"
+    ]
+  },
+  {
+    "id": "hp-india-service-center-locator",
+    "name": "HP India - Service Center Locator",
+    "url": "https://support.hp.com/in-en/help/service-center",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "HP Support's locator for finding an authorised HP service center in India.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "hp"
+    ]
+  },
+  {
+    "id": "hp-india-recycle-old-computers",
+    "name": "HP India - How to Recycle Old Computers",
+    "url": "https://www.hp.com/in-en/tech-takes/sustainability/guide/how-to-recycle-old-computers.html",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "HP India guide on how to recycle old computers.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "hp"
+    ]
+  },
+  {
+    "id": "lenovo-india-product-recycling",
+    "name": "Lenovo India - Product Recycling Program",
+    "url": "https://www.lenovo.com/in/en/sustainability-product-recycling/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Lenovo India's product recycling program page for consumers.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "lenovo"
+    ]
+  },
+  {
+    "id": "canon-india-service-network",
+    "name": "Canon India - Service Network",
+    "url": "https://cloud.connect.canon.co.in/servicenetwork",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "Canon India's service network listing of service centers.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "canon"
+    ]
+  },
+  {
+    "id": "canon-india-ewaste",
+    "name": "Canon India - Recycling and E-waste",
+    "url": "https://in.canon/en/consumer/web/e-waste",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Canon India's recycling page with an e-waste pickup request route and contact details.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "canon"
+    ]
+  },
+  {
+    "id": "epson-india-ewaste",
+    "name": "Epson India - E-waste",
+    "url": "https://www.epson.co.in/E-waste",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Epson India's e-waste page with contact options, an online request form and a collection centre list.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "epson"
+    ]
+  },
+  {
+    "id": "oneplus-india-service-centers",
+    "name": "OnePlus India - Service Centers",
+    "url": "https://www.oneplus.in/experience-service-centers",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "OnePlus India's page listing service centers.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "oneplus"
+    ]
+  },
+  {
+    "id": "oneplus-india-ewaste",
+    "name": "OnePlus India - E-waste Management",
+    "url": "https://www.oneplus.in/legal/e-waste-management",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "OnePlus India's e-waste recycling policy page pointing to collection centres and authorised partners.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "oneplus"
+    ]
+  },
+  {
+    "id": "realme-india-service-center",
+    "name": "realme India - Service Center Support",
+    "url": "https://www.realme.com/in/support/services",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "realme India's service center locator by region.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "realme"
+    ]
+  },
+  {
+    "id": "realme-india-ewaste",
+    "name": "realme India - E-waste Management Program",
+    "url": "https://www.realme.com/in/legal/e-waste-management",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "realme India's e-waste management program page.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "realme"
+    ]
+  },
+  {
+    "id": "oppo-india-service-center",
+    "name": "OPPO India - Service Center Inquiry and Appointment",
+    "url": "https://support.oppo.com/in/service-center/",
+    "region": "IN",
+    "actions": [
+      "repair",
+      "stop_use"
+    ],
+    "description": "OPPO India's service center inquiry and appointment page.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "oppo"
+    ]
+  },
+  {
+    "id": "oppo-india-ewaste",
+    "name": "OPPO India - E-waste Management",
+    "url": "https://www.oppo.com/in/newsroom/press/e-waste-management/",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "OPPO India's e-waste management policy describing collection through authorised producer responsibility organisations.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "oppo"
+    ]
+  },
+  {
+    "id": "motorola-india-ewaste",
+    "name": "Motorola India - E-waste Management",
+    "url": "https://www.motorola.in/legal/e-waste",
+    "region": "IN",
+    "actions": [
+      "recycle",
+      "stop_use"
+    ],
+    "description": "Motorola India's page on e-waste rules, its collection process and recycling partners.",
+    "source": "curated",
+    "citationUrl": null,
+    "lastVerified": null,
+    "brands": [
+      "motorola"
+    ]
+  }
+]
