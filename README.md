@@ -52,14 +52,6 @@ SecondLife AI turns that decision into a short conversation:
 - Public deployment, screenshots and a demo video.
 - State-level curated resources, such as each State Pollution Control Board's list of authorised e-waste recyclers.
 
-## Screenshots and demo
-
-| | |
-|---|---|
-| Screenshots | Not added yet |
-| Live demo | Not deployed yet |
-| Demo video (3 min) | Not recorded yet |
-
 ## Technology stack
 
 | Layer | Technology |
@@ -80,8 +72,8 @@ flowchart TD
     UI["Vue chat UI<br/>photo resized + EXIF stripped in the browser"]
     UI -->|"POST /api/v1/chat<br/>multipart: message, conversationId, image, location"| UP["Upload check<br/>size, type, file signature"]
     UP --> S["Session<br/>in memory, 2 h expiry"]
-    S -->|"turn with a photo or clip"| OBS["Muse Spark: observe the photo or watch the clip<br/>→ damage concepts"]
-    OBS --> SEG["SAM 3.1: one request per concept, in parallel<br/>→ simplified polygons, 10 s timeout"]
+    S -->|"turn with a photo or clip"| OBS["Muse Spark: observe the photo or watch the clip<br/>→ damage areas: part + label"]
+    OBS --> SEG["SAM 3.1: one request per part, in parallel<br/>→ simplified polygons, 10 s timeout"]
     SEG --> SAFE
     S -->|"text-only turn"| SAFE["Deterministic safety check<br/>text, observations, regions"]
     SAFE --> RESP["Muse Spark: one question<br/>or ranked recommendations"]
@@ -102,7 +94,7 @@ flowchart TD
 **How a turn is produced** (`server/src/services/conversation.service.ts`):
 
 1. Load the session, or create one if the ID is missing or expired. Work on a copy, so a failed request can be retried cleanly.
-2. If there is a photo: get device observations, send the named damage concepts to segmentation, and keep regions scoring at least 0.5. A short summary of the regions is kept for later turns. The image itself is never stored.
+2. If there is a photo: get device observations, send the named damage areas to segmentation (merged by part, up to four), and keep regions scoring at least 0.5. A short summary of the regions is kept for later turns. The image itself is never stored.
 3. Run the safety check over the user's messages, the observations and the regions.
 4. Ask the assessment provider for the next turn: a question (`gathering`), ranked recommendations (`recommending`) or an answer about an earlier recommendation (`follow_up`).
 5. Validate and normalise the turn, apply the safety rules, attach curated resources for the recommended actions and the device's brand, save the session and return.
@@ -235,7 +227,7 @@ How the code uses them, with details confirmed from [Meta's developer docs](http
 - **Muse Spark model:** `muse-spark-1.3`, the version Meta recommends for new work. We avoid the cheaper "contributor" variants, which allow Meta to train on what is sent, because requests include users' photos.
 - **Conversation:** the OpenAI-compatible Chat Completions endpoint (`POST /v1/chat/completions`). Photos go in as base64 data URLs. `response_format` carries a strict JSON schema generated from the shared Zod schemas (`DeviceObservations` for the photo, `AssistantTurn` for each reply). Replies are still validated, and an invalid one gets one repair request listing the validation errors. Muse Spark always reasons; the server asks for `reasoning_effort: "low"` to keep turns quick.
 - **Damage areas:** SAM 3.1 matches a short noun phrase naming a part rather than a defect, so Muse Spark returns each damaged area as two fields: a part for SAM 3.1 to outline (such as "phone screen", "phone side frame" or "phone back cover" for a lifted back, never a bare "crack") and a label for the user (such as "display lines and dark patches" or "bent frame"). A part with several problems is outlined once, with all of them in its label.
-- **Segmentation:** SAM 3.1 runs on the Responses API (`POST /v1/responses`), one streamed request per concept (up to four, in parallel), with compact `one_bit` masks and per-match confidence. Meta's [`@meta-sam/parser`](https://www.npmjs.com/package/@meta-sam/parser) decodes each mask. The server maps it from its bounding box back to image pixels, simplifies the outline, drops tiny fragments and keeps matches with confidence of at least 0.5. The overlay draws holes correctly.
+- **Segmentation:** SAM 3.1 runs on the Responses API (`POST /v1/responses`), one streamed request per part (up to four, in parallel), with compact `one_bit` masks and per-match confidence. Meta's [`@meta-sam/parser`](https://www.npmjs.com/package/@meta-sam/parser) decodes each mask. The server maps it from its bounding box back to image pixels, simplifies the outline, drops tiny fragments and keeps matches with confidence of at least 0.5. The overlay draws holes correctly.
 - **Tool calling and web search:** both run on the Responses API, because web search is not available on Chat Completions. The resource finder (`server/src/providers/muse/resource-finder.ts`) works in two steps:
   1. A tool loop of at most a few rounds, with the `find_curated_resources` function tool and the built-in `web_search` tool. Search is biased to the user's state and town when shared. `tool_choice` can only be `"auto"`, so the model decides when to call either tool.
   2. A selection call with structured output. The model sees the numbered search results and returns picks as result numbers. The server maps each number to that result's URL, keeps only official-looking picks for the recommended actions (at most two per action), and drops duplicates of the curated links. In testing, Muse Spark wrote plausible but non-existent URLs when asked for them directly, which is why it never writes the links that are shown.
