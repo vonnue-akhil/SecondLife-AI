@@ -1,11 +1,12 @@
 import type { ChatResponse, DamageRegion, DeviceObservations, UserLocation } from '../../../shared/schemas';
-import { DEFAULT_REGION, MIN_REGION_SCORE } from '../config';
+import { MIN_REGION_SCORE } from '../config';
 import { AppError } from '../middleware/errors';
 import { assessmentProvider, segmentationProvider } from '../providers';
-import type { PreparedImage } from '../providers/types';
-import { PHOTO_PLACEHOLDER } from '../providers/mock/facts';
+import type { PreparedImage, PreparedVideo } from '../providers/types';
+import { PHOTO_PLACEHOLDER, VIDEO_PLACEHOLDER } from '../providers/mock/facts';
+import { detectBrand } from './brand';
 import { normaliseTurn } from './recommendation.service';
-import { resourcesForActions } from './resource.service';
+import { regionOf, resourcesForActions } from './resource.service';
 import { applySafety, detectHazard } from './safety.service';
 import { createSession, getSession, saveSession, type Session } from './session.store';
 
@@ -29,7 +30,7 @@ const polygonArea = (pts: [number, number][]) => {
 };
 
 /** e.g. "highlighted on photo: screen crack (2 areas, ~4% of image)", one entry per concept. */
-function summariseRegions(regions: DamageRegion[], image: PreparedImage): string[] {
+function summariseRegions(regions: DamageRegion[], image: PreparedImage, what: 'photo' | 'frame'): string[] {
   const byConcept = new Map<string, { areas: number; pixels: number }>();
   for (const r of regions) {
     const entry = byConcept.get(r.concept) ?? { areas: 0, pixels: 0 };
@@ -40,7 +41,7 @@ function summariseRegions(regions: DamageRegion[], image: PreparedImage): string
   return [...byConcept].map(([concept, { areas, pixels }]) => {
     const pct = (pixels / (image.width * image.height)) * 100;
     const share = pct < 1 ? '<1%' : `~${Math.round(pct)}%`;
-    return `highlighted on photo: ${concept} (${areas} area${areas === 1 ? '' : 's'}, ${share} of image)`;
+    return `highlighted on ${what === 'frame' ? 'a frame of the video' : 'photo'}: ${concept} (${areas} area${areas === 1 ? '' : 's'}, ${share} of image)`;
   });
 }
 
@@ -51,10 +52,13 @@ function summariseRegions(regions: DamageRegion[], image: PreparedImage): string
 export async function runChatTurn(input: {
   message: string;
   conversationId?: string;
+  /** The photo, or the poster frame the browser took from the video. */
   image: PreparedImage | null;
+  video?: PreparedVideo | null;
   location: UserLocation | null;
 }): Promise<ChatResponse> {
   const { message, conversationId, image, location } = input;
+  const video = input.video ?? null;
 
   // Load or create the session; work on a copy so a failed request leaves the stored one untouched.
   const existing = conversationId ? getSession(conversationId) : null;
@@ -62,17 +66,24 @@ export async function runChatTurn(input: {
   session.location = location;
 
   let imageAnalysed = false;
+  let videoAnalysed = false;
   let newRegions: DamageRegion[] = [];
-  if (image) {
+  if (image || video) {
+    let observed = false;
     try {
-      const observations: DeviceObservations = await assessmentProvider.observeImage(image, message);
+      const observations: DeviceObservations = video
+        ? await assessmentProvider.observeVideo(video, message)
+        : await assessmentProvider.observeImage(image!, message);
       session.observations = observations;
-      imageAnalysed = true;
+      observed = true;
+      if (video) videoAnalysed = true;
+      else imageAnalysed = true;
     } catch (err) {
-      console.error('[chat] observeImage failed; continuing with text only:', err instanceof Error ? err.message : err);
+      console.error(`[chat] ${video ? 'observeVideo' : 'observeImage'} failed; continuing with text only:`, err instanceof Error ? err.message : err);
     }
 
-    if (imageAnalysed && session.observations && session.observations.damageConcepts.length > 0) {
+    // Outlines are drawn on the photo, or on the video's poster frame; no poster means no outlines.
+    if (observed && image && session.observations && session.observations.damageConcepts.length > 0) {
       try {
         const found = await withTimeout(segmentationProvider.segment(image, session.observations.damageConcepts), SEGMENTATION_TIMEOUT_MS);
         newRegions = found.filter((r) => r.score >= MIN_REGION_SCORE && r.polygons.length > 0);
@@ -80,15 +91,15 @@ export async function runChatTurn(input: {
         console.error('[chat] segmentation failed; continuing without regions:', err instanceof Error ? err.message : err);
       }
     }
-    if (imageAnalysed) {
+    if (observed) {
       session.damageRegions = newRegions;
-      if (newRegions.length > 0 && session.observations) {
-        session.observations.visibleCondition.push(...summariseRegions(newRegions, image));
+      if (newRegions.length > 0 && image && session.observations) {
+        session.observations.visibleCondition.push(...summariseRegions(newRegions, image, video ? 'frame' : 'photo'));
       }
     }
   }
 
-  session.messages.push({ role: 'user', text: message || PHOTO_PLACEHOLDER });
+  session.messages.push({ role: 'user', text: message || (video ? VIDEO_PLACEHOLDER : PHOTO_PLACEHOLDER) });
 
   const hazard = detectHazard(session);
 
@@ -105,7 +116,8 @@ export async function runChatTurn(input: {
   const resources = turn.stage === 'recommending'
     ? resourcesForActions(
         turn.recommendations.map((r) => r.action),
-        session.location ? `${DEFAULT_REGION}-${session.location.state}` : DEFAULT_REGION,
+        regionOf(session),
+        detectBrand(session),
       )
     : [];
 
@@ -114,7 +126,10 @@ export async function runChatTurn(input: {
     text: turn.followUpQuestion ? `${turn.message}\n${turn.followUpQuestion}` : turn.message,
   });
   if (turn.stage === 'gathering' && turn.followUpQuestion) session.followUpsAsked += 1;
-  if (turn.stage === 'recommending') session.lastRecommendation = turn;
+  if (turn.stage === 'recommending') {
+    session.lastRecommendation = turn;
+    session.webResources = null;
+  }
   saveSession(session);
 
   const body: ChatResponse = {
@@ -127,7 +142,8 @@ export async function runChatTurn(input: {
       segmentation: { name: segmentationProvider.name, isMock: segmentationProvider.isMock },
     },
     imageAnalysed,
+    videoAnalysed,
   };
-  console.log(`[chat] ${session.id.slice(0, 8)} stage=${turn.stage} image=${image ? (imageAnalysed ? 'analysed' : 'failed') : 'none'} regions=${newRegions.length}`);
+  console.log(`[chat] ${session.id.slice(0, 8)} stage=${turn.stage} image=${image ? (imageAnalysed ? 'analysed' : video ? 'poster' : 'failed') : 'none'} video=${video ? (videoAnalysed ? 'analysed' : 'failed') : 'none'} regions=${newRegions.length}`);
   return body;
 }

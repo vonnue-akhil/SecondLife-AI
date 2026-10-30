@@ -1,8 +1,13 @@
 import { z } from 'zod';
 import { ResourceSchema, type Action, type Resource } from '../../../shared/schemas';
+import { DEFAULT_REGION } from '../config';
 import resourcesJson from '../data/resources.json';
+import type { Session } from './session.store';
 
 const MAX_PER_ACTION = 3;
+
+/** "IN-KL" when the user shared a state, else "IN". */
+export const regionOf = (session: Session) => (session.location ? `${DEFAULT_REGION}-${session.location.state}` : DEFAULT_REGION);
 
 // Fail fast on a malformed curated list.
 const resources: Resource[] = z.array(ResourceSchema).parse(resourcesJson);
@@ -19,11 +24,23 @@ function forRegion(list: Resource[], region: string): Resource[] {
   return [...new Set([...regional, ...list.filter(isGlobal)])];
 }
 
+/** Brand-specific entries show only when the device's brand is known and listed. */
+const fitsBrand = (r: Resource, brand: string | null) => !r.brands?.length || (brand !== null && r.brands.includes(brand));
+
+/**
+ * The device brand's own entries first, but only within the regional and the global groups: a brand's service
+ * or take-back page beats a general one, without its global how-to guides pushing out Indian organisations.
+ */
+function brandFirst(list: Resource[]): Resource[] {
+  const byBrand = (group: Resource[]) => [...group].sort((a, b) => Number(!!b.brands?.length) - Number(!!a.brands?.length));
+  return [...byBrand(list.filter((r) => !isGlobal(r))), ...byBrand(list.filter(isGlobal))];
+}
+
 /** Up to three entries per action, in the order of the actions, without duplicates. */
-export function resourcesForActions(actions: Action[], region: string): Resource[] {
+export function resourcesForActions(actions: Action[], region: string, brand: string | null = null): Resource[] {
   const out: Resource[] = [];
   for (const action of actions) {
-    const matches = forRegion(resources.filter((r) => r.actions.includes(action)), region).slice(0, MAX_PER_ACTION);
+    const matches = brandFirst(forRegion(resources.filter((r) => r.actions.includes(action) && fitsBrand(r, brand)), region)).slice(0, MAX_PER_ACTION);
     for (const r of matches) if (!out.some((o) => o.id === r.id)) out.push(r);
   }
   return out;

@@ -32,9 +32,11 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
+      if (err.field === 'video') return send(res, 413, 'VIDEO_TOO_LARGE', `That video is too large. Please use a clip under ${env.MAX_VIDEO_MB} MB.`);
+      if (err.field === 'audio') return send(res, 413, 'AUDIO_TOO_LARGE', 'That recording is too long. Please keep it under a minute.');
       return send(res, 413, 'IMAGE_TOO_LARGE', `That photo is too large. Please use one under ${env.MAX_UPLOAD_MB} MB.`);
     }
-    return send(res, 400, 'INVALID_INPUT', 'The upload was not understood. Send one photo in the "image" field.');
+    return send(res, 400, 'INVALID_INPUT', 'The upload was not understood. Send at most one photo ("image") and one video ("video").');
   }
 
   // body-parser errors

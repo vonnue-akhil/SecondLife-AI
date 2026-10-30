@@ -21,6 +21,9 @@ const steps = [
         <h4 :id="titleId" class="pt-1 text-sm leading-snug font-semibold text-stone-900">
           Protect your data before it leaves your hands
         </h4>
+        <p class="mt-1 text-sm leading-snug text-stone-600">
+          If it stores anything personal, such as a phone, laptop, tablet, smart TV, camera or smartwatch:
+        </p>
         <ol class="mt-2 space-y-1.5 text-sm leading-snug text-stone-700">
           <li v-for="(step, i) in steps" :key="step" class="flex gap-2">
             <span class="w-4 shrink-0 font-semibold text-stone-500 tabular-nums" aria-hidden="true">{{ i + 1 }}.</span>

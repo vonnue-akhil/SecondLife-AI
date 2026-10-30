@@ -51,8 +51,8 @@ function onSamplePicked() {
         </span>
       </h1>
       <p class="mx-auto mt-3 max-w-lg text-[15px] leading-relaxed text-pretty text-stone-600 sm:mt-4 sm:text-lg">
-        That old phone or laptop can still help someone, or give back the metals inside it. Tell me about it or snap a
-        photo, and I’ll find its best next life — safely.
+        That old phone, TV, laptop, speaker or appliance can still help someone, or give back the metals inside it. Tell
+        me about it, snap a photo or share a short clip, and I’ll find its best next life — safely.
       </p>
     </div>
 
@@ -74,8 +74,8 @@ function onSamplePicked() {
 
     <p class="mx-auto mt-8 max-w-md text-center text-xs leading-relaxed text-pretty text-stone-500">
       <ShieldCheck class="mr-1 inline size-3.5 align-[-2px] text-emerald-600" aria-hidden="true" />
-      Your photos are resized and stripped of location data on your device before upload, and never stored. Guidance is
-      general advice, not a professional diagnosis.
+      Your photos and videos are stripped of location data on your device before upload, and photos, videos and voice
+      recordings are never stored. Guidance is general advice, not a professional diagnosis.
     </p>
   </section>
 </template>

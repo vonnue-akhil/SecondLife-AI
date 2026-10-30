@@ -6,7 +6,8 @@ import { AppError } from '../../middleware/errors';
 
 export type ContentPart =
   | { type: 'text'; text: string }
-  | { type: 'image_url'; image_url: { url: string } };
+  | { type: 'image_url'; image_url: { url: string } }
+  | { type: 'video_url'; video_url: { url: string } };
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -82,7 +83,7 @@ export async function chatCompletion(
       signal: AbortSignal.timeout(request.timeoutMs),
     });
     if (!res.ok) {
-      // The error body describes the request problem; it never echoes the image back.
+      // The error body describes the request problem; it never echoes the image or video back.
       const detail = (await res.text().catch(() => '')).slice(0, 500);
       throw new Error(`${host.label} returned HTTP ${res.status}: ${detail}`);
     }

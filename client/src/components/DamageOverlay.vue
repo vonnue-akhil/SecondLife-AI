@@ -4,7 +4,7 @@ import { Eye, EyeOff, ScanSearch } from '@lucide/vue';
 import type { DamageRegion, ProviderInfo } from '../../../shared/schemas';
 import type { Photo } from '../composables/useConversation';
 
-const props = defineProps<{ photo: Photo; regions: DamageRegion[]; segmentation: ProviderInfo }>();
+const props = defineProps<{ photo: Photo; regions: DamageRegion[]; segmentation: ProviderInfo; fromVideo?: boolean }>();
 
 // Translucent fill + crisp stroke per concept; labels use a deeper shade for white text.
 const PALETTE = [
@@ -35,7 +35,7 @@ interface Shape {
   key: number;
   concept: string;
   colour: { fill: string; label: string };
-  polygons: string[];
+  path: string; // every polygon of the region as one path, filled evenodd so holes stay holes
   labelStyle: Record<string, string>;
 }
 
@@ -79,7 +79,7 @@ const shapes = computed<Shape[]>(() =>
         key,
         concept: region.concept,
         colour: colourOf(region.concept),
-        polygons: polygons.map((p) => p.map(([x, y]) => `${x},${y}`).join(' ')),
+        path: polygons.map((p) => `M${p.map(([x, y]) => `${x} ${y}`).join('L')}Z`).join(''),
         labelStyle: labelStyleFor(minX, minY, maxX, maxY),
       },
     ];
@@ -99,10 +99,11 @@ function countOf(concept: string) {
   return props.regions.filter((r) => r.concept === concept).length;
 }
 
-const caption = computed(() =>
-  props.segmentation.isMock ? 'Demo highlights, pre-traced for this sample' : `Highlighted by ${props.segmentation.name}`,
-);
-const altText = computed(() => `Your photo, with possible damage highlighted: ${concepts.value.join(', ')}.`);
+const caption = computed(() => {
+  const base = props.segmentation.isMock ? 'Demo highlights, pre-traced for this sample' : `Highlighted by ${props.segmentation.name}`;
+  return props.fromVideo ? `Frame from your video · ${base}` : base;
+});
+const altText = computed(() => `${props.fromVideo ? 'A frame from your video' : 'Your photo'}, with possible damage highlighted: ${concepts.value.join(', ')}.`);
 </script>
 
 <template>
@@ -139,27 +140,26 @@ const altText = computed(() => `Your photo, with possible damage highlighted: ${
           aria-hidden="true"
         >
           <g v-for="shape in shapes" :key="shape.key">
-            <template v-for="(points, i) in shape.polygons" :key="i">
-              <!-- White halo keeps the outline legible on dark and light photos alike. -->
-              <polygon
-                :points="points"
-                fill="none"
-                stroke="#ffffff"
-                stroke-opacity="0.85"
-                stroke-width="4"
-                stroke-linejoin="round"
-                vector-effect="non-scaling-stroke"
-              />
-              <polygon
-                :points="points"
-                :fill="shape.colour.fill"
-                fill-opacity="0.38"
-                :stroke="shape.colour.fill"
-                stroke-width="2"
-                stroke-linejoin="round"
-                vector-effect="non-scaling-stroke"
-              />
-            </template>
+            <!-- White halo keeps the outline legible on dark and light photos alike. -->
+            <path
+              :d="shape.path"
+              fill="none"
+              stroke="#ffffff"
+              stroke-opacity="0.85"
+              stroke-width="4"
+              stroke-linejoin="round"
+              vector-effect="non-scaling-stroke"
+            />
+            <path
+              :d="shape.path"
+              :fill="shape.colour.fill"
+              fill-opacity="0.38"
+              fill-rule="evenodd"
+              :stroke="shape.colour.fill"
+              stroke-width="2"
+              stroke-linejoin="round"
+              vector-effect="non-scaling-stroke"
+            />
           </g>
         </svg>
         <span

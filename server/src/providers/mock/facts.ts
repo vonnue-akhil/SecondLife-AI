@@ -20,6 +20,7 @@ export interface Facts {
 }
 
 export const PHOTO_PLACEHOLDER = '(sent a photo)';
+export const VIDEO_PLACEHOLDER = '(sent a video)';
 
 // The mock recognises its own questions by these patterns when it reads the history.
 export const QUESTION_PATTERNS: [QuestionId, RegExp][] = [
@@ -120,7 +121,7 @@ export function extractFacts(session: Session): Facts {
     }
   });
 
-  const userMessages = msgs.filter((m) => m.role === 'user').map((m) => m.text).filter((t) => t !== PHOTO_PLACEHOLDER);
+  const userMessages = msgs.filter((m) => m.role === 'user').map((m) => m.text).filter((t) => t !== PHOTO_PLACEHOLDER && t !== VIDEO_PLACEHOLDER);
   const userText = userMessages.join(' \n ');
 
   let device: string | null = null;

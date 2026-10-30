@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight, Check, Earth, ShieldCheck, Sparkles } from '@lucide/vue';
+import { ArrowUpRight, Check, Earth, Gift, ShieldCheck, Sparkles } from '@lucide/vue';
 import { EWASTE_MONITOR_URL, type OutcomeOption } from '../lib/presentation';
 
 defineProps<{
@@ -110,6 +110,19 @@ const particles = Array.from({ length: COUNT }, (_, i) => {
             Source
             <ArrowUpRight class="size-3" aria-hidden="true" />
           </a>
+        </p>
+      </div>
+
+      <div
+        v-if="option.celebration.points"
+        class="mt-3 flex items-center gap-3 rounded-xl bg-linear-to-r from-amber-50 to-yellow-50 px-3.5 py-3 ring-1 ring-amber-200"
+      >
+        <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-400 text-white shadow-sm shadow-amber-900/20">
+          <Gift class="size-5" aria-hidden="true" />
+        </span>
+        <p class="text-sm leading-snug text-stone-700">
+          <strong class="block text-base font-semibold text-amber-900">Earn {{ option.celebration.points }} points</strong>
+          Hand it over through a SecondLife partner. Your points are added once they confirm.
         </p>
       </div>
 

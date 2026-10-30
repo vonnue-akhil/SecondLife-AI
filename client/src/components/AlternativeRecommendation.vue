@@ -5,10 +5,12 @@ import type { Recommendation, Resource } from '../../../shared/schemas';
 import { ACTION_STYLES } from '../lib/presentation';
 import ConfidenceBadge from './ConfidenceBadge.vue';
 import RecommendationDetails from './RecommendationDetails.vue';
+import PartnerSection from './PartnerSection.vue';
 import ResourceLinks from './ResourceLinks.vue';
 
 const props = defineProps<{ recommendation: Recommendation; resources: Resource[] }>();
 const style = computed(() => ACTION_STYLES[props.recommendation.action]);
+const hasPartners = computed(() => ['repair', 'donate', 'recycle'].includes(props.recommendation.action));
 const open = ref(false);
 const panelId = useId();
 </script>
@@ -42,6 +44,9 @@ const panelId = useId();
     <div v-show="open" :id="panelId" class="border-t border-stone-100 px-3.5 pt-3.5 pb-4 motion-safe:animate-fade">
       <div class="mb-3 sm:hidden"><ConfidenceBadge :confidence="recommendation.confidence" /></div>
       <RecommendationDetails :recommendation="recommendation" compact />
+      <div v-if="hasPartners && open" class="mt-4">
+        <PartnerSection :action="(recommendation.action as 'repair' | 'donate' | 'recycle')" />
+      </div>
       <div v-if="resources.length" class="mt-4">
         <h5 class="mb-2 text-xs font-semibold tracking-wide text-stone-500 uppercase">Where to go</h5>
         <ResourceLinks :resources="resources" />

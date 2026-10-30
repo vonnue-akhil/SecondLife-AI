@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Laptop, Scale, Smartphone } from '@lucide/vue';
+import { BatteryWarning, Laptop, Smartphone, Tv, WashingMachine } from '@lucide/vue';
 
 defineProps<{ disabled?: boolean }>();
 defineEmits<{ select: [text: string] }>();
@@ -7,7 +7,9 @@ defineEmits<{ select: [text: string] }>();
 const prompts = [
   { text: 'What can I do with this old phone?', icon: Smartphone },
   { text: 'My laptop won’t turn on.', icon: Laptop },
-  { text: 'Should I repair or recycle my device?', icon: Scale },
+  { text: 'Our old TV has lines on the screen.', icon: Tv },
+  { text: 'The washing machine stopped spinning.', icon: WashingMachine },
+  { text: 'How do I get rid of a dead power bank?', icon: BatteryWarning },
 ];
 </script>
 

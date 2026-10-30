@@ -19,8 +19,18 @@ const failureText = computed(() => {
   <div class="flex flex-col items-end motion-safe:animate-rise">
     <h3 class="sr-only">You said</h3>
     <div class="flex max-w-[85%] flex-col items-end gap-1.5 sm:max-w-[75%]" :class="failed ? 'opacity-70' : ''">
+      <video
+        v-if="entry.video"
+        :src="entry.video.url"
+        :poster="entry.photo?.url"
+        controls
+        playsinline
+        preload="metadata"
+        aria-label="Video clip you sent of your device"
+        class="block h-auto max-h-72 w-auto max-w-[14rem] rounded-3xl rounded-br-lg border border-stone-200 bg-stone-900 object-contain shadow-sm"
+      />
       <img
-        v-if="entry.photo"
+        v-else-if="entry.photo"
         :src="entry.photo.url"
         :width="entry.photo.width || undefined"
         :height="entry.photo.height || undefined"

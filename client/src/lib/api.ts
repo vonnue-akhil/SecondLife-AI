@@ -4,26 +4,49 @@ import type {
   ChatResponse,
   HealthResponse,
   OutcomeValue,
+  ResourceSearchResponse,
   UserLocation,
 } from '../../../shared/schemas';
 
 const API_BASE = '/api/v1';
 /** A real model can take up to ~55 s; leave headroom for the upload. */
 const CHAT_TIMEOUT_MS = 70_000;
+/** A clip adds up to ~50 s of video analysis and a larger upload. */
+const VIDEO_CHAT_TIMEOUT_MS = 110_000;
 const SHORT_TIMEOUT_MS = 10_000;
+/** Server-side web search is capped at 40 s. */
+const SEARCH_TIMEOUT_MS = 45_000;
 
 export type ClientErrorCode = ApiErrorCode | 'NETWORK' | 'TIMEOUT' | 'BAD_RESPONSE';
 
 /** Errors that would fail again if the identical request were resent. */
-const NOT_RETRYABLE = new Set<ClientErrorCode>(['INVALID_INPUT', 'IMAGE_TOO_LARGE', 'UNSUPPORTED_IMAGE']);
+const NOT_RETRYABLE = new Set<ClientErrorCode>([
+  'INVALID_INPUT',
+  'IMAGE_TOO_LARGE',
+  'UNSUPPORTED_IMAGE',
+  'VIDEO_TOO_LARGE',
+  'UNSUPPORTED_VIDEO',
+  'AUDIO_TOO_LARGE',
+  'UNSUPPORTED_AUDIO',
+  'UNAUTHORIZED',
+  'CONFLICT',
+  'RATE_LIMITED',
+]);
 
 const FRIENDLY: Record<ClientErrorCode, string> = {
   INVALID_INPUT: 'That message couldn’t be sent. Please check it and try again.',
   IMAGE_TOO_LARGE: 'That photo is too large to upload. Please try a smaller one.',
   UNSUPPORTED_IMAGE: 'That photo format isn’t supported. Please attach a JPEG, PNG or WebP image.',
+  VIDEO_TOO_LARGE: 'That video is too large to upload. Please try a shorter clip.',
+  UNSUPPORTED_VIDEO: 'That video isn’t supported. Please attach a short MP4 or MOV clip.',
+  AUDIO_TOO_LARGE: 'That recording is too long. Please keep it under a minute.',
+  UNSUPPORTED_AUDIO: 'That recording couldn’t be read. Please try again.',
   PROVIDER_TIMEOUT: 'The assistant took too long to reply. Please try again.',
   PROVIDER_ERROR: 'The assistant is having trouble right now. Please try again in a moment.',
   NOT_FOUND: 'We couldn’t find that conversation. Please try again.',
+  UNAUTHORIZED: 'That partner ID or PIN isn’t right. Please check it and try again.',
+  CONFLICT: 'That couldn’t be done. Please check and try again.',
+  RATE_LIMITED: 'Too many tries. Please wait a few minutes and try again.',
   INTERNAL_ERROR: 'Something went wrong on our side. Please try again.',
   NETWORK: 'Couldn’t reach SecondLife AI. Check your connection and try again.',
   TIMEOUT: 'This is taking longer than expected. Please try again.',
@@ -64,7 +87,7 @@ async function readJson(res: Response): Promise<unknown> {
   }
 }
 
-async function request(path: string, init: RequestInit, timeoutMs: number, signal?: AbortSignal): Promise<unknown> {
+export async function request(path: string, init: RequestInit, timeoutMs: number, signal?: AbortSignal): Promise<unknown> {
   // Combine the caller's signal with a timeout by hand (AbortSignal.any is too new for older phones).
   const controller = new AbortController();
   let timedOut = false;
@@ -133,6 +156,7 @@ function normaliseChat(raw: unknown): ChatResponse {
       segmentation: r.providers?.segmentation ?? unknownProvider,
     },
     imageAnalysed: r.imageAnalysed ?? false,
+    videoAnalysed: r.videoAnalysed ?? false,
   };
 }
 
@@ -147,6 +171,8 @@ export interface ChatPayload {
   conversationId?: string;
   /** Already processed (or a byte-for-byte sample photo). */
   image?: File;
+  /** A prepared clip; `image` is then its poster frame. */
+  video?: File;
   /** Town, district and state only: never coordinates. */
   location?: UserLocation;
 }
@@ -158,7 +184,9 @@ export async function sendChat(payload: ChatPayload, signal?: AbortSignal): Prom
   if (payload.conversationId) form.append('conversationId', payload.conversationId);
   if (payload.location) form.append('location', JSON.stringify(payload.location));
   if (payload.image) form.append('image', payload.image, payload.image.name);
-  const body = await request('/chat', { method: 'POST', body: form }, CHAT_TIMEOUT_MS, signal);
+  if (payload.video) form.append('video', payload.video, payload.video.name);
+  const timeout = payload.video ? VIDEO_CHAT_TIMEOUT_MS : CHAT_TIMEOUT_MS;
+  const body = await request('/chat', { method: 'POST', body: form }, timeout, signal);
   return normaliseChat(body);
 }
 
@@ -173,4 +201,15 @@ export async function postOutcome(conversationId: string, outcome: OutcomeValue,
     SHORT_TIMEOUT_MS,
     signal,
   );
+}
+
+export async function searchResources(conversationId: string, signal?: AbortSignal): Promise<ResourceSearchResponse> {
+  const body = (await request(
+    '/resources/search',
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ conversationId }) },
+    SEARCH_TIMEOUT_MS,
+    signal,
+  )) as Partial<ResourceSearchResponse> | null;
+  if (!body || !Array.isArray(body.resources)) throw badResponse();
+  return { resources: body.resources.filter((r) => typeof r?.url === 'string' && typeof r.name === 'string'), searched: body.searched === true };
 }

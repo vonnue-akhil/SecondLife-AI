@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.64.0",
+    "@meta-sam/parser": "^0.1.0",
     "express": "^5.3.0",
     "multer": "^2.5.0",
     "vue": "^3.5.44",

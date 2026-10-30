@@ -1,20 +1,25 @@
 import { computed, ref, shallowRef } from 'vue';
 import { ImageError, prepareImage, readDimensions } from '../lib/image';
+import { prepareVideo, VideoError, looksLikeVideo } from '../lib/video';
 import { SAMPLE_PHOTOS, type SamplePhoto } from '../lib/samples';
 
-/** A photo ready to send: the exact bytes to upload plus an object URL of those same bytes. */
+/**
+ * A photo or video clip ready to send: the exact bytes to upload plus object URLs of those same bytes.
+ * For a clip, `file` and `url` are its poster frame (null when the browser couldn't decode one).
+ */
 export interface ReadyAttachment {
-  file: File;
-  url: string;
+  file: File | null;
+  url: string | null;
   width: number;
   height: number;
+  video: { file: File; url: string; durationMs: number } | null;
   /** Set when this is one of the bundled sample photos (uploaded unchanged). */
   sampleId: string | null;
 }
 
 type AttachmentState =
   | { status: 'empty' }
-  | { status: 'processing'; sampleId: string | null }
+  | { status: 'processing'; sampleId: string | null; isVideo: boolean }
   | ({ status: 'ready' } & ReadyAttachment);
 
 // Module-level: the draft survives the landing → conversation switch, and drag-and-drop,
@@ -24,20 +29,25 @@ const state = shallowRef<AttachmentState>({ status: 'empty' });
 const error = ref<string | null>(null);
 let generation = 0;
 
+function revoke(a: ReadyAttachment) {
+  if (a.url) URL.revokeObjectURL(a.url);
+  if (a.video) URL.revokeObjectURL(a.video.url);
+}
+
 function revokeCurrent() {
-  if (state.value.status === 'ready') URL.revokeObjectURL(state.value.url);
+  if (state.value.status === 'ready') revoke(state.value);
 }
 
 /** Runs `work` unless a newer attach/remove supersedes it; returns false if superseded. */
-async function load(sampleId: string | null, work: () => Promise<ReadyAttachment>): Promise<boolean> {
+async function load(sampleId: string | null, isVideo: boolean, work: () => Promise<ReadyAttachment>): Promise<boolean> {
   const token = ++generation;
   error.value = null;
   revokeCurrent();
-  state.value = { status: 'processing', sampleId };
+  state.value = { status: 'processing', sampleId, isVideo };
   try {
     const ready = await work();
     if (token !== generation) {
-      URL.revokeObjectURL(ready.url);
+      revoke(ready);
       return false;
     }
     state.value = { status: 'ready', ...ready };
@@ -45,20 +55,38 @@ async function load(sampleId: string | null, work: () => Promise<ReadyAttachment
   } catch (err) {
     if (token !== generation) return false;
     state.value = { status: 'empty' };
-    error.value = err instanceof ImageError ? err.message : 'Something went wrong preparing that photo. Please try another one.';
+    error.value =
+      err instanceof ImageError || err instanceof VideoError
+        ? err.message
+        : `Something went wrong preparing that ${isVideo ? 'clip' : 'photo'}. Please try another one.`;
     return false;
   }
 }
 
-function attachFile(file: File): Promise<boolean> {
-  return load(null, async () => {
+/** A photo or, when videos are supported, a clip. Anything else gets a clear message from the image path. */
+function attachFile(file: File, allowVideo = false): Promise<boolean> {
+  if (allowVideo && looksLikeVideo(file)) {
+    return load(null, true, async () => {
+      const prepared = await prepareVideo(file);
+      const { poster } = prepared;
+      return {
+        file: poster?.file ?? null,
+        url: poster?.url ?? null,
+        width: poster?.width ?? 0,
+        height: poster?.height ?? 0,
+        video: { file: prepared.file, url: prepared.url, durationMs: prepared.durationMs },
+        sampleId: null,
+      };
+    });
+  }
+  return load(null, false, async () => {
     const prepared = await prepareImage(file);
-    return { ...prepared, url: URL.createObjectURL(prepared.file), sampleId: null };
+    return { ...prepared, url: URL.createObjectURL(prepared.file), video: null, sampleId: null };
   });
 }
 
 async function attachSample(sample: SamplePhoto): Promise<boolean> {
-  const ok = await load(sample.id, async () => {
+  const ok = await load(sample.id, false, async () => {
     const res = await fetch(sample.src);
     const blob = res.ok ? await res.blob() : null;
     // A dev server answers unknown paths with index.html, so check the type too.
@@ -68,7 +96,7 @@ async function attachSample(sample: SamplePhoto): Promise<boolean> {
     // Byte-for-byte copy of the bundled file: no resize, no re-encode.
     const file = new File([blob], `${sample.id}.jpg`, { type: 'image/jpeg' });
     const { width, height } = await readDimensions(file);
-    return { file, url: URL.createObjectURL(file), width, height, sampleId: sample.id };
+    return { file, url: URL.createObjectURL(file), width, height, video: null, sampleId: sample.id };
   });
   // Prefill the matching question, without overwriting anything the user typed themselves.
   const typed = draft.value.trim();

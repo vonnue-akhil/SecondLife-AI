@@ -1,6 +1,6 @@
 import { computed, markRaw, ref, shallowRef } from 'vue';
 import type { ChatResponse, HealthResponse, OutcomeValue } from '../../../shared/schemas';
-import { ApiError, getHealth, postOutcome, sendChat } from '../lib/api';
+import { ApiError, getHealth, postOutcome, searchResources, sendChat } from '../lib/api';
 import {
   CHECKING_BADGE,
   OFFLINE_BADGE,
@@ -18,13 +18,22 @@ export interface Photo {
   height: number;
 }
 
+/** A clip the user sent; its poster frame (if any) is the entry's `photo`. */
+export interface Clip {
+  url: string;
+  durationMs: number;
+}
+
 export interface UserEntry {
   kind: 'user';
   id: string;
   text: string;
+  /** The photo, or the poster frame of the clip. */
   photo: Photo | null;
+  video: Clip | null;
   /** Kept until the message is delivered so Retry resends the identical bytes. */
   file: File | null;
+  videoFile: File | null;
   status: 'sending' | 'sent' | 'failed';
   error: ApiError | null;
 }
@@ -33,8 +42,10 @@ export interface AssistantEntry {
   kind: 'assistant';
   id: string;
   response: ChatResponse;
-  /** The photo carried by the request this turn answers (used for the damage overlay). */
+  /** The photo (or video poster frame) carried by the request this turn answers, used for the damage overlay. */
   photo: Photo | null;
+  /** Web search for extra official links: only set on recommending turns, when the server supports it. */
+  webSearch: 'searching' | 'done' | 'failed' | null;
 }
 
 export type Entry = UserEntry | AssistantEntry;
@@ -59,6 +70,7 @@ const { location } = useLocation();
 
 let inflight: AbortController | null = null;
 let outcomeInflight: AbortController | null = null;
+let searchInflight: AbortController | null = null;
 let idCounter = 0;
 
 function nextId(prefix: string): string {
@@ -93,6 +105,8 @@ const modeBadge = computed<ModeBadgeState>(() => {
 });
 
 const supportsImages = computed(() => health.value?.supportsImages ?? true);
+const supportsVideo = computed(() => health.value?.supportsVideo ?? false);
+const speechToText = computed(() => health.value?.speechToText ?? false);
 
 /** /health with a few quiet retries: in `npm run dev` the page can load before the API is up. */
 async function loadHealth(attempt = 0): Promise<void> {
@@ -116,6 +130,38 @@ function resetOutcome() {
   outcome.value = { recorded: null, saving: null, error: null };
 }
 
+/** Appends web-found links after the curated ones. A newer search or a reset makes this one stale. */
+async function searchWeb(entryId: string, id: string) {
+  searchInflight?.abort();
+  for (const e of entries.value) if (e.kind === 'assistant' && e.id !== entryId && e.webSearch === 'searching') e.webSearch = null;
+  const controller = new AbortController();
+  searchInflight = controller;
+  const entry = () => {
+    const e = entries.value.find((x) => x.id === entryId);
+    return e?.kind === 'assistant' ? e : undefined;
+  };
+  try {
+    const result = await searchResources(id, controller.signal);
+    if (controller.signal.aborted) return;
+    const target = entry();
+    if (!target) return;
+    if (result.resources.length > 0) {
+      const have = new Set(target.response.resources.map((r) => r.id));
+      target.response = markRaw({
+        ...target.response,
+        resources: [...target.response.resources, ...result.resources.filter((r) => !have.has(r.id))],
+      });
+    }
+    target.webSearch = 'done';
+  } catch {
+    if (controller.signal.aborted) return;
+    const target = entry();
+    if (target) target.webSearch = 'failed';
+  } finally {
+    if (searchInflight === controller) searchInflight = null;
+  }
+}
+
 async function dispatch(id: string) {
   const entry = findUser(id);
   if (!entry) return;
@@ -132,6 +178,7 @@ async function dispatch(id: string) {
         message: entry.text,
         conversationId: conversationId.value ?? undefined,
         image: entry.file ?? undefined,
+        video: entry.videoFile ?? undefined,
         location: location.value ?? undefined,
       },
       controller.signal,
@@ -142,7 +189,18 @@ async function dispatch(id: string) {
     conversationId.value = response.conversationId;
     entry.status = 'sent';
     entry.file = null;
-    entries.value.push({ kind: 'assistant', id: nextId('a'), response: markRaw(response), photo: entry.photo });
+    entry.videoFile = null;
+    const searchable =
+      health.value?.webSearch === true && response.turn.stage === 'recommending' && response.turn.recommendations.length > 0;
+    const assistant: AssistantEntry = {
+      kind: 'assistant',
+      id: nextId('a'),
+      response: markRaw(response),
+      photo: entry.photo,
+      webSearch: searchable ? 'searching' : null,
+    };
+    entries.value.push(assistant);
+    if (searchable) void searchWeb(assistant.id, response.conversationId);
     if (healthStatus.value === 'error') healthStatus.value = 'ok';
   } catch (err) {
     if (controller.signal.aborted) return; // reset() discarded this request
@@ -162,12 +220,15 @@ async function dispatch(id: string) {
 function send(text: string, image?: ReadyAttachment | null): boolean {
   const message = text.trim();
   if (sending.value || (!message && !image)) return false;
+  const poster = image?.file && image.url ? { url: image.url, width: image.width, height: image.height } : null;
   const entry: UserEntry = {
     kind: 'user',
     id: nextId('u'),
     text: message,
-    photo: image ? { url: image.url, width: image.width, height: image.height } : null,
+    photo: poster,
+    video: image?.video ? { url: image.video.url, durationMs: image.video.durationMs } : null,
     file: image?.file ?? null,
+    videoFile: image?.video?.file ?? null,
     status: 'sending',
     error: null,
   };
@@ -182,7 +243,7 @@ function canRetry(id: string): boolean {
   return last?.id === id && last.kind === 'user' && last.status === 'failed' && !!last.error?.retryable;
 }
 
-/** Resends a failed message with exactly the same text and image bytes. */
+/** Resends a failed message with exactly the same text, image and video bytes. */
 function retry(id: string) {
   if (sending.value || !canRetry(id)) return;
   void dispatch(id);
@@ -219,8 +280,12 @@ async function recordOutcome(value: OutcomeValue) {
 function reset() {
   inflight?.abort();
   inflight = null;
+  searchInflight?.abort();
+  searchInflight = null;
   resetOutcome();
-  const urls = new Set(entries.value.map((e) => e.photo?.url).filter((u): u is string => !!u));
+  const urls = new Set(
+    entries.value.flatMap((e) => (e.kind === 'user' ? [e.photo?.url, e.video?.url] : [e.photo?.url])).filter((u): u is string => !!u),
+  );
   urls.forEach((u) => URL.revokeObjectURL(u));
   entries.value = [];
   conversationId.value = null;
@@ -240,6 +305,8 @@ export function useConversation() {
     latestRecommendationId,
     modeBadge,
     supportsImages,
+    supportsVideo,
+    speechToText,
     loadHealth,
     send,
     canRetry,

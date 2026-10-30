@@ -5,9 +5,11 @@ import AppHeader from './components/AppHeader.vue';
 import ChatComposer from './components/ChatComposer.vue';
 import LandingHero from './components/LandingHero.vue';
 import MessageList from './components/MessageList.vue';
+import PartnerPage from './components/PartnerPage.vue';
 import { useComposer } from './composables/useComposer';
 import { useConversation } from './composables/useConversation';
 import { firstImageFile } from './lib/image';
+import { firstVideoFile } from './lib/video';
 
 const conversation = useConversation();
 const { hasConversation, sending, modeBadge } = conversation;
@@ -35,7 +37,7 @@ watch(hasConversation, (now, before) => {
 });
 
 // ---------------------------------------------------------------------------
-// Drag-and-drop and paste anywhere on the page attach a photo.
+// Drag-and-drop and paste anywhere on the page attach a photo or, when supported, a video clip.
 // ---------------------------------------------------------------------------
 const dragDepth = ref(0);
 const dragging = computed(() => dragDepth.value > 0);
@@ -61,26 +63,40 @@ function onDrop(e: DragEvent) {
   e.preventDefault();
   dragDepth.value = 0;
   if (sending.value) return;
-  const file = firstImageFile(e.dataTransfer?.files) ?? e.dataTransfer?.files[0];
-  if (file) void composerState.attachFile(file); // non-images get a clear message
+  const files = e.dataTransfer?.files;
+  const file = firstImageFile(files) ?? (conversation.supportsVideo.value ? firstVideoFile(files) : null) ?? files?.[0];
+  if (file) void composerState.attachFile(file, conversation.supportsVideo.value); // other files get a clear message
 }
 function onPaste(e: ClipboardEvent) {
   if (sending.value) return;
-  const file = firstImageFile(e.clipboardData?.items);
+  const items = e.clipboardData?.items;
+  const file = firstImageFile(items) ?? (conversation.supportsVideo.value ? firstVideoFile(items) : null);
   if (!file) return; // plain text pastes behave normally
   e.preventDefault();
-  void composerState.attachFile(file);
+  void composerState.attachFile(file, conversation.supportsVideo.value);
+}
+
+// Tiny hash route: #/partner shows the partner page instead of the chat.
+const onPartnerPage = ref(location.hash === '#/partner');
+function onHashChange() {
+  onPartnerPage.value = location.hash === '#/partner';
+  window.scrollTo({ top: 0 });
 }
 
 onMounted(() => {
   void conversation.loadHealth();
   window.addEventListener('paste', onPaste);
+  window.addEventListener('hashchange', onHashChange);
 });
-onBeforeUnmount(() => window.removeEventListener('paste', onPaste));
+onBeforeUnmount(() => {
+  window.removeEventListener('paste', onPaste);
+  window.removeEventListener('hashchange', onHashChange);
+});
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col" @dragenter="onDragEnter" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
+  <PartnerPage v-if="onPartnerPage" />
+  <div v-else class="flex min-h-dvh flex-col" @dragenter="onDragEnter" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
     <a
       href="#composer"
       class="sr-only z-50 rounded-lg bg-white px-3 py-2 text-sm font-medium shadow focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -103,12 +119,17 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste));
           <div class="mx-auto w-full max-w-3xl px-4">
             <ChatComposer ref="composer" variant="docked" />
             <p class="mt-1.5 hidden text-center text-[11px] text-stone-400 sm:block">
-              General guidance, not a professional diagnosis · Photos are never stored
+              General guidance, not a professional diagnosis · Photos, videos and recordings are never stored
             </p>
           </div>
         </div>
       </template>
     </main>
+
+    <footer v-if="!hasConversation" class="pb-safe px-4 pt-2 pb-4 text-center text-xs text-stone-500">
+      Repair shop or collection point?
+      <a href="#/partner" class="font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800">Join as a partner</a>
+    </footer>
 
     <div
       v-if="dragging"
@@ -119,8 +140,8 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste));
         <span class="grid size-12 place-items-center rounded-2xl bg-emerald-100 text-emerald-700">
           <ImagePlus class="size-6" aria-hidden="true" />
         </span>
-        <p class="font-semibold text-stone-900">Drop your photo to attach it</p>
-        <p class="text-sm text-stone-500">JPEG, PNG, WebP or HEIC</p>
+        <p class="font-semibold text-stone-900">{{ conversation.supportsVideo.value ? 'Drop your photo or clip to attach it' : 'Drop your photo to attach it' }}</p>
+        <p class="text-sm text-stone-500">{{ conversation.supportsVideo.value ? 'JPEG, PNG, WebP or HEIC photos, or MP4 and MOV clips' : 'JPEG, PNG, WebP or HEIC' }}</p>
       </div>
     </div>
   </div>

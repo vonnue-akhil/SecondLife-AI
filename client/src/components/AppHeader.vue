@@ -2,6 +2,7 @@
 import { SquarePen } from '@lucide/vue';
 import type { ModeBadgeState } from '../lib/presentation';
 import BrandMark from './BrandMark.vue';
+import PointsButton from './PointsButton.vue';
 import ModeBadge from './ModeBadge.vue';
 
 defineProps<{ badge: ModeBadgeState; showNewConversation: boolean }>();
@@ -19,7 +20,13 @@ defineEmits<{ newConversation: [] }>();
       </div>
 
       <div class="flex min-w-0 items-center justify-end gap-1.5">
-        <ModeBadge :state="badge" class="max-w-[11rem] sm:max-w-[18rem]" />
+        <!-- Only when it tells the user something: scripted demo replies, or no connection. -->
+        <ModeBadge
+          v-if="badge.tone === 'demo' || badge.tone === 'offline'"
+          :state="badge"
+          class="max-w-[11rem] sm:max-w-[18rem]"
+        />
+        <PointsButton />
         <button
           v-if="showNewConversation"
           type="button"

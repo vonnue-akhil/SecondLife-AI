@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { MessageCircleQuestion } from '@lucide/vue';
+import { Globe, MessageCircleQuestion } from '@lucide/vue';
+import { INDIAN_STATES } from '../../../shared/india-states';
 import type { OutcomeValue } from '../../../shared/schemas';
+import { useLocation } from '../composables/useLocation';
 import type { AssistantEntry, OutcomeState } from '../composables/useConversation';
 import { orderedOutcomes } from '../lib/presentation';
 import BrandMark from './BrandMark.vue';
@@ -20,6 +22,13 @@ const props = defineProps<{
   outcome: OutcomeState;
 }>();
 defineEmits<{ reply: [text: string]; outcome: [value: OutcomeValue] }>();
+
+const { location } = useLocation();
+const searchLabel = computed(() => {
+  const l = location.value;
+  const where = l ? ` near ${l.place ?? INDIAN_STATES[l.state]}` : '';
+  return `Searching for official links${where}…`;
+});
 
 const response = computed(() => props.entry.response);
 const turn = computed(() => response.value.turn);
@@ -46,6 +55,7 @@ const outcomeOptions = computed(() => orderedOutcomes(turn.value.recommendations
       <DamageOverlay
         v-if="showOverlay && entry.photo"
         :photo="entry.photo"
+        :from-video="response.videoAnalysed"
         :regions="response.damageRegions"
         :segmentation="response.providers.segmentation"
       />
@@ -73,6 +83,15 @@ const outcomeOptions = computed(() => orderedOutcomes(turn.value.recommendations
       </section>
 
       <Recommendations v-if="showCards" :recommendations="turn.recommendations" :resources="response.resources" />
+
+      <p
+        v-if="showCards && entry.webSearch === 'searching'"
+        class="flex items-center gap-2 text-sm text-stone-500"
+        role="status"
+      >
+        <Globe class="size-4 shrink-0 motion-safe:animate-pulse" aria-hidden="true" />
+        {{ searchLabel }}
+      </p>
 
       <QuickReplies
         v-if="!turn.followUpQuestion && replies.length"

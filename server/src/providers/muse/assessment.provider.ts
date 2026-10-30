@@ -5,10 +5,13 @@ import { fallbackTurn, parseModelOutput } from '../../services/recommendation.se
 import { detectHazard } from '../../services/safety.service';
 import type { AssessmentProvider } from '../types';
 import { chatCompletion, responseFormat, type ChatMessage, type MuseHost } from './client';
-import { conversationContext, OBSERVE_SYSTEM_PROMPT, RESPOND_SYSTEM_PROMPT } from './prompts';
+import { conversationContext, OBSERVE_SYSTEM_PROMPT, OBSERVE_VIDEO_SYSTEM_PROMPT, RESPOND_SYSTEM_PROMPT } from './prompts';
 
 // With segmentation (10 s), the worst case stays under the client's 70 s chat timeout.
 const OBSERVE_TIMEOUT_MS = 18_000;
+// Clips of up to 30 s took 9-27 s, with one outlier past 45 s. Worst case with a video:
+// 50 + 10 (segmentation) + 25 + 15 (repair) = 100 s, under the client's 110 s.
+const OBSERVE_VIDEO_TIMEOUT_MS = 50_000;
 const RESPOND_TIMEOUT_MS = 25_000;
 const REPAIR_TIMEOUT_MS = 15_000;
 
@@ -36,6 +39,27 @@ export function createMuseAssessmentProvider(host: MuseHost): AssessmentProvider
     name: 'Muse Spark',
     isMock: false,
     supportsImages: true,
+    supportsVideo: true,
+
+    async observeVideo(video, userText) {
+      const { content } = await chatCompletion(host, {
+        messages: [
+          { role: 'system', content: OBSERVE_VIDEO_SYSTEM_PROMPT },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: userText ? `The user's note: ${userText}` : 'The user sent this clip without a note.' },
+              { type: 'video_url', video_url: { url: `data:${video.mimeType};base64,${video.buffer.toString('base64')}` } },
+            ],
+          },
+        ],
+        format: OBSERVATIONS_FORMAT,
+        timeoutMs: OBSERVE_VIDEO_TIMEOUT_MS,
+      });
+      const parsed = parseModelOutput(content, DeviceObservationsSchema);
+      if (parsed instanceof ZodError) throw new Error(`invalid video observations at ${issuePaths(parsed)}`);
+      return parsed;
+    },
 
     async observeImage(image, userText) {
       const { content } = await chatCompletion(host, {

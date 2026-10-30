@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import BrandMark from './BrandMark.vue';
 
-defineProps<{ withPhoto?: boolean }>();
+defineProps<{ withPhoto?: boolean; withVideo?: boolean }>();
 
 // A live model can take most of a minute; reassure the user instead of looking stuck.
 const slow = ref(false);
@@ -22,7 +22,7 @@ onBeforeUnmount(() => clearTimeout(timer));
       </span>
       <span class="text-sm text-stone-500">
         <template v-if="slow">Still working on it — this can take up to a minute…</template>
-        <template v-else>{{ withPhoto ? 'Looking at your photo…' : 'Thinking…' }}</template>
+        <template v-else>{{ withVideo ? 'Watching your clip…' : withPhoto ? 'Looking at your photo…' : 'Thinking…' }}</template>
       </span>
     </div>
   </div>

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useId, watch } from 'vue';
-import { ArrowUp, ImagePlus, LoaderCircle, ShieldCheck, X } from '@lucide/vue';
+import { ArrowUp, ImagePlus, LoaderCircle, Play, ShieldCheck, Video, X } from '@lucide/vue';
 import { useComposer } from '../composables/useComposer';
 import { useConversation } from '../composables/useConversation';
 import { ACCEPTED_IMAGE_TYPES } from '../lib/image';
+import { ACCEPTED_VIDEO_TYPES, formatDuration } from '../lib/video';
 import { SAMPLE_PHOTOS } from '../lib/samples';
 import LocationPicker from './LocationPicker.vue';
+import MicButton from './MicButton.vue';
 
 const props = withDefaults(defineProps<{ variant?: 'hero' | 'docked'; autofocus?: boolean }>(), {
   variant: 'docked',
@@ -15,7 +17,7 @@ const props = withDefaults(defineProps<{ variant?: 'hero' | 'docked'; autofocus?
 const MAX_LENGTH = 2000; // matches ChatFieldsSchema
 const MAX_HEIGHT_PX = 200;
 
-const { send, sending, supportsImages } = useConversation();
+const { send, sending, supportsImages, supportsVideo, speechToText } = useConversation();
 const { draft, attachment, attachError, isProcessing, hasAttachment, attachFile, removeAttachment, takeAttachment, clearError } =
   useComposer();
 
@@ -27,6 +29,12 @@ const isHero = computed(() => props.variant === 'hero');
 const canSend = computed(
   () => !sending.value && !isProcessing.value && (draft.value.trim().length > 0 || hasAttachment.value),
 );
+const acceptTypes = computed(() => (supportsVideo.value ? `${ACCEPTED_IMAGE_TYPES},${ACCEPTED_VIDEO_TYPES}` : ACCEPTED_IMAGE_TYPES));
+const processingVideo = computed(() => attachment.value.status === 'processing' && attachment.value.isVideo);
+const readyVideo = computed(() => {
+  const a = attachment.value;
+  return a.status === 'ready' ? a.video : null;
+});
 const showCount = computed(() => draft.value.length >= MAX_LENGTH * 0.8);
 const sampleLabel = computed(() => {
   const a = attachment.value;
@@ -62,7 +70,7 @@ function onKeydown(e: KeyboardEvent) {
 function onFileChange(e: Event) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
-  if (file) void attachFile(file);
+  if (file) void attachFile(file, supportsVideo.value);
   input.value = ''; // allow picking the same file again
 }
 
@@ -87,34 +95,45 @@ defineExpose({ focus: () => textarea.value?.focus() });
         <div class="inline-flex max-w-full items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-1.5">
           <div class="relative size-14 shrink-0 overflow-hidden rounded-xl bg-stone-200">
             <img
-              v-if="attachment.status === 'ready'"
+              v-if="attachment.status === 'ready' && attachment.url"
               :src="attachment.url"
-              alt="Photo to send"
+              :alt="readyVideo ? 'Frame from the video to send' : 'Photo to send'"
               class="size-full object-cover"
             />
             <div v-else class="grid size-full place-items-center text-stone-500">
-              <LoaderCircle class="size-5 motion-safe:animate-spin" aria-hidden="true" />
+              <Video v-if="readyVideo" class="size-5" aria-hidden="true" />
+              <LoaderCircle v-else class="size-5 motion-safe:animate-spin" aria-hidden="true" />
             </div>
+            <span
+              v-if="readyVideo"
+              class="absolute inset-x-0 bottom-0 flex items-center gap-0.5 bg-stone-900/65 px-1 py-0.5 text-[10px] font-medium text-white tabular-nums"
+            >
+              <Play class="size-2.5 fill-current" aria-hidden="true" />
+              {{ formatDuration(readyVideo.durationMs) }}
+            </span>
           </div>
           <div class="min-w-0 text-xs leading-snug" role="status">
             <template v-if="attachment.status === 'ready'">
-              <p class="truncate font-medium text-stone-700">{{ sampleLabel ? `Sample photo · ${sampleLabel}` : 'Photo attached' }}</p>
+              <p class="truncate font-medium text-stone-700">{{ sampleLabel ? `Sample photo · ${sampleLabel}` : readyVideo ? 'Video attached' : 'Photo attached' }}</p>
               <p class="mt-0.5 flex items-center gap-1 text-stone-500">
                 <ShieldCheck class="size-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
-                {{ sampleLabel ? 'Bundled demo photo' : 'Resized, location data removed' }}
+                {{ sampleLabel ? 'Bundled demo photo' : readyVideo ? 'Location data removed' : 'Resized, location data removed' }}
               </p>
             </template>
-            <p v-else class="font-medium text-stone-600">Preparing photo…</p>
+            <p v-else class="font-medium text-stone-600">{{ processingVideo ? 'Preparing video…' : 'Preparing photo…' }}</p>
           </div>
           <button
             type="button"
             class="grid size-11 shrink-0 place-items-center rounded-full text-stone-500 transition hover:bg-stone-200 hover:text-stone-800"
-            aria-label="Remove photo"
+            aria-label="Remove attachment"
             @click="removeAttachment()"
           >
             <X class="size-4" aria-hidden="true" />
           </button>
         </div>
+        <p v-if="readyVideo && attachment.status === 'ready' && !attachment.url" class="mt-1.5 px-1 text-xs text-stone-500">
+          Your browser can’t preview this clip, so it will be sent without highlighted areas.
+        </p>
         <p v-if="!supportsImages && attachment.status === 'ready'" class="mt-1.5 px-1 text-xs text-amber-800">
           This assistant can’t look at photos yet, so please describe the device too.
         </p>
@@ -147,17 +166,18 @@ defineExpose({ focus: () => textarea.value?.focus() });
             class="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50"
             :class="isHero ? 'px-3' : 'w-11'"
             :disabled="sending || isProcessing"
-            aria-label="Attach a photo"
+            :aria-label="supportsVideo ? 'Attach a photo or video' : 'Attach a photo'"
             @click="fileInput?.click()"
           >
             <ImagePlus class="size-5" aria-hidden="true" />
-            <span v-if="isHero" aria-hidden="true">Add photo</span>
+            <span v-if="isHero" aria-hidden="true">{{ supportsVideo ? 'Add photo or video' : 'Add photo' }}</span>
           </button>
+          <MicButton v-if="speechToText" :disabled="sending || isProcessing" />
           <LocationPicker :variant="variant" :disabled="sending" />
           <input
             ref="fileInput"
             type="file"
-            :accept="ACCEPTED_IMAGE_TYPES"
+            :accept="acceptTypes"
             class="hidden"
             tabindex="-1"
             aria-hidden="true"

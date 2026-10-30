@@ -12,7 +12,11 @@ const { entries, sending, lastAssistant, latestRecommendationId, outcome, canRet
 
 const pendingWithPhoto = computed(() => {
   const last = entries.value[entries.value.length - 1];
-  return last?.kind === 'user' && last.status === 'sending' && !!last.photo;
+  return last?.kind === 'user' && last.status === 'sending' && !!last.photo && !last.video;
+});
+const pendingWithVideo = computed(() => {
+  const last = entries.value[entries.value.length - 1];
+  return last?.kind === 'user' && last.status === 'sending' && !!last.video;
 });
 
 // Screen readers get a short summary of each new reply rather than the whole card stack.
@@ -81,6 +85,6 @@ watch(
         @outcome="recordOutcome($event)"
       />
     </div>
-    <TypingIndicator v-if="sending" :with-photo="pendingWithPhoto" />
+    <TypingIndicator v-if="sending" :with-photo="pendingWithPhoto" :with-video="pendingWithVideo" />
   </section>
 </template>

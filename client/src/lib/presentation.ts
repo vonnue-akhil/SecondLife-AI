@@ -1,13 +1,14 @@
 import type { Component } from 'vue';
 import { Clock, HeartHandshake, OctagonAlert, Recycle, RefreshCw, Tag, Wrench } from '@lucide/vue';
-import type {
-  Action,
-  ChatResponse,
-  Confidence,
-  HealthResponse,
-  OutcomeValue,
-  Recommendation,
-  Resource,
+import {
+  HANDOVER_POINTS,
+  type Action,
+  type ChatResponse,
+  type Confidence,
+  type HealthResponse,
+  type OutcomeValue,
+  type Recommendation,
+  type Resource,
 } from '../../../shared/schemas';
 
 export interface ActionStyle {
@@ -96,9 +97,9 @@ export interface OutcomeOption {
   icon: Component;
   /**
    * Shown once the choice is recorded. Qualitative only: no per-device impact figures, since
-   * we can't measure them. Absent for "Still deciding".
+   * we can't measure them. Absent for "Still deciding". `points` is what a confirmed partner handover earns.
    */
-  celebration?: { title: string; body: string; impact: string[]; reminder?: string };
+  celebration?: { title: string; body: string; impact: string[]; reminder?: string; points?: number };
 }
 
 /** Source for the one global figure we quote (62 Mt of e-waste in 2022, under a quarter properly recycled). */
@@ -150,6 +151,7 @@ export const OUTCOME_OPTIONS: OutcomeOption[] = [
         'It stays in use instead of becoming e-waste',
       ],
       reminder: DATA_REMINDER,
+      points: HANDOVER_POINTS.donate,
     },
   },
   {
@@ -225,8 +227,11 @@ export function assignResources(
   for (const resource of resources) {
     if (seen.has(resource.id)) continue;
     seen.add(resource.id);
+    // The cap is for curated links; web finds (at most 2 per action) are appended after them.
     const home = ranked.find(
-      (r) => resource.actions.includes(r.action) && (map.get(r.rank)?.length ?? 0) < MAX_RESOURCES_PER_CARD,
+      (r) =>
+        resource.actions.includes(r.action) &&
+        (resource.source === 'web' || (map.get(r.rank)?.length ?? 0) < MAX_RESOURCES_PER_CARD),
     );
     if (home) map.get(home.rank)!.push(resource);
     else if (!ranked.some((r) => resource.actions.includes(r.action))) unassigned.push(resource);

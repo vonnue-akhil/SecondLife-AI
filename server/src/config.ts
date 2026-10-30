@@ -19,6 +19,8 @@ export const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 export const MAX_HISTORY_MESSAGES = 20;
 export const MAX_FOLLOW_UP_QUESTIONS = 3;
 export const MIN_REGION_SCORE = 0.5;
+export const MAX_VIDEO_SECONDS = 30;
+export const MAX_AUDIO_SECONDS = 60;
 
 const blankToUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
 const optionalString = z.preprocess(blankToUndefined, z.string().trim().optional());
@@ -34,10 +36,13 @@ const EnvSchema = z.object({
   BASETEN_BASE_URL: withDefault('https://inference.baseten.co/v1'),
   BASETEN_MODEL_ID: withDefault('meta-models/muse-spark-open-1026'),
   SEGMENTATION_PROVIDER: z.preprocess(blankToUndefined, z.enum(['mock', 'sam3']).default('mock')),
-  SAM3_HOST: z.preprocess(blankToUndefined, z.enum(['modal', 'hosted']).default('modal')),
-  SAM3_API_URL: optionalString,
-  SAM3_API_KEY: optionalString,
+  SAM_MODEL_ID: withDefault('sam-3.1'), // on the Meta Model API, with MODEL_API_KEY
   MAX_UPLOAD_MB: z.preprocess(blankToUndefined, z.coerce.number().positive().max(20).default(8)),
+  MAX_VIDEO_MB: z.preprocess(blankToUndefined, z.coerce.number().positive().max(40).default(20)),
+  ASR_MODEL_ID: withDefault('muse-voice-transcribe-1.0'), // Muse Voice Transcribe on the Meta Model API
+  DATA_DIR: withDefault('data'), // the JSON data file lives here; relative paths resolve from the repo root
+  DEMO_PARTNER_PIN: z.preprocess((v) => (v === undefined ? 'demo-2026' : v), z.string().trim()), // blank turns the demo partner tools off
+  ADMIN_TOKEN: optionalString, // enables the /admin routes
   PORT: z.preprocess(blankToUndefined, z.coerce.number().int().min(1).max(65535).default(3001)),
 });
 

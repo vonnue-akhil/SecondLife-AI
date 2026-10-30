@@ -4,10 +4,12 @@ import type { Recommendation, Resource } from '../../../shared/schemas';
 import { ACTION_STYLES } from '../lib/presentation';
 import ConfidenceBadge from './ConfidenceBadge.vue';
 import RecommendationDetails from './RecommendationDetails.vue';
+import PartnerSection from './PartnerSection.vue';
 import ResourceLinks from './ResourceLinks.vue';
 
 const props = defineProps<{ recommendation: Recommendation; resources: Resource[] }>();
 const style = computed(() => ACTION_STYLES[props.recommendation.action]);
+const hasPartners = computed(() => ['repair', 'donate', 'recycle'].includes(props.recommendation.action));
 const urgent = computed(() => props.recommendation.action === 'stop_use');
 </script>
 
@@ -38,6 +40,10 @@ const urgent = computed(() => props.recommendation.action === 'stop_use');
 
     <div class="px-4 py-5 sm:px-5">
       <RecommendationDetails :recommendation="recommendation" />
+    </div>
+
+    <div v-if="hasPartners" class="border-t border-stone-100 px-4 py-4 sm:px-5">
+      <PartnerSection :action="(recommendation.action as 'repair' | 'donate' | 'recycle')" />
     </div>
 
     <footer v-if="resources.length" class="border-t border-stone-100 bg-stone-50/70 px-4 py-4 sm:px-5">

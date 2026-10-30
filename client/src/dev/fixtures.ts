@@ -262,7 +262,7 @@ let n = 0;
 const id = (p: string) => `${p}-fixture-${++n}`;
 
 function user(text: string, photo: Photo | null = null): Entry {
-  return { kind: 'user', id: id('u'), text, photo, file: null, status: 'sent', error: null };
+  return { kind: 'user', id: id('u'), text, photo, video: null, file: null, videoFile: null, status: 'sent', error: null };
 }
 
 function assistant(
@@ -277,9 +277,10 @@ function assistant(
     damageRegions: [],
     providers: MOCK_PROVIDERS,
     imageAnalysed: !!photo,
+    videoAnalysed: false,
     ...extra,
   };
-  return { kind: 'assistant', id: id('a'), response, photo };
+  return { kind: 'assistant', id: id('a'), response, photo, webSearch: null };
 }
 
 async function cracked(): Promise<Entry[]> {
@@ -289,7 +290,9 @@ async function cracked(): Promise<Entry[]> {
     id: id('u'),
     text: 'How do I back up my phone first?',
     photo: null,
+    video: null,
     file: null,
+    videoFile: null,
     status: 'failed',
     error: new ApiError('PROVIDER_TIMEOUT', 'The assistant took too long to reply. Please try again.', 504),
   };

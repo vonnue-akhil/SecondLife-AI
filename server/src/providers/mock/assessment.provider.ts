@@ -32,6 +32,11 @@ export const mockAssessmentProvider: AssessmentProvider = {
   name: 'Scripted demo',
   isMock: true,
   supportsImages: true,
+  supportsVideo: false,
+
+  async observeVideo() {
+    throw new Error('The scripted demo does not accept video');
+  },
 
   async observeImage(image, userText) {
     const sample = findSample(image.sha256);
