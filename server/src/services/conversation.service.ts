@@ -29,19 +29,19 @@ const polygonArea = (pts: [number, number][]) => {
   return Math.abs(sum) / 2;
 };
 
-/** e.g. "highlighted on photo: screen crack (2 areas, ~4% of image)", one entry per concept. */
+/** e.g. "highlighted on photo: display lines on the phone screen (1 area, ~60% of image)", one entry per outlined part. */
 function summariseRegions(regions: DamageRegion[], image: PreparedImage, what: 'photo' | 'frame'): string[] {
-  const byConcept = new Map<string, { areas: number; pixels: number }>();
+  const byConcept = new Map<string, { label: string; areas: number; pixels: number }>();
   for (const r of regions) {
-    const entry = byConcept.get(r.concept) ?? { areas: 0, pixels: 0 };
+    const entry = byConcept.get(r.concept) ?? { label: r.label, areas: 0, pixels: 0 };
     entry.areas += r.polygons.length;
     entry.pixels += r.polygons.reduce((sum, p) => sum + polygonArea(p as [number, number][]), 0);
     byConcept.set(r.concept, entry);
   }
-  return [...byConcept].map(([concept, { areas, pixels }]) => {
+  return [...byConcept].map(([concept, { label, areas, pixels }]) => {
     const pct = (pixels / (image.width * image.height)) * 100;
     const share = pct < 1 ? '<1%' : `~${Math.round(pct)}%`;
-    return `highlighted on ${what === 'frame' ? 'a frame of the video' : 'photo'}: ${concept} (${areas} area${areas === 1 ? '' : 's'}, ${share} of image)`;
+    return `highlighted on ${what === 'frame' ? 'a frame of the video' : 'photo'}: ${label} on the ${concept} (${areas} area${areas === 1 ? '' : 's'}, ${share} of image)`;
   });
 }
 
@@ -83,9 +83,9 @@ export async function runChatTurn(input: {
     }
 
     // Outlines are drawn on the photo, or on the video's poster frame; no poster means no outlines.
-    if (observed && image && session.observations && session.observations.damageConcepts.length > 0) {
+    if (observed && image && session.observations && session.observations.damageAreas.length > 0) {
       try {
-        const found = await withTimeout(segmentationProvider.segment(image, session.observations.damageConcepts), SEGMENTATION_TIMEOUT_MS);
+        const found = await withTimeout(segmentationProvider.segment(image, session.observations.damageAreas), SEGMENTATION_TIMEOUT_MS);
         newRegions = found.filter((r) => r.score >= MIN_REGION_SCORE && r.polygons.length > 0);
       } catch (err) {
         console.error('[chat] segmentation failed; continuing without regions:', err instanceof Error ? err.message : err);

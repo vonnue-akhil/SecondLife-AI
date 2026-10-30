@@ -6,7 +6,7 @@ import type { Photo } from '../composables/useConversation';
 
 const props = defineProps<{ photo: Photo; regions: DamageRegion[]; segmentation: ProviderInfo; fromVideo?: boolean }>();
 
-// Translucent fill + crisp stroke per concept; labels use a deeper shade for white text.
+// Translucent fill + crisp stroke per label; labels use a deeper shade for white text.
 const PALETTE = [
   { fill: '#f43f5e', label: '#be123c' }, // rose
   { fill: '#f59e0b', label: '#b45309' }, // amber
@@ -26,14 +26,15 @@ function onLoad(e: Event) {
 }
 const size = computed(() => (natural.value.w > 0 && natural.value.h > 0 ? natural.value : { w: 4, h: 3 }));
 
-const concepts = computed(() => [...new Set(props.regions.map((r) => r.concept))]);
-function colourOf(concept: string) {
-  return PALETTE[concepts.value.indexOf(concept) % PALETTE.length]!;
+// Labels say what's wrong ("display lines"); the part SAM outlined (region.concept) stays behind the scenes.
+const labels = computed(() => [...new Set(props.regions.map((r) => r.label))]);
+function colourOf(label: string) {
+  return PALETTE[labels.value.indexOf(label) % PALETTE.length]!;
 }
 
 interface Shape {
   key: number;
-  concept: string;
+  label: string;
   colour: { fill: string; label: string };
   path: string; // every polygon of the region as one path, filled evenodd so holes stay holes
   labelStyle: Record<string, string>;
@@ -77,8 +78,8 @@ const shapes = computed<Shape[]>(() =>
     return [
       {
         key,
-        concept: region.concept,
-        colour: colourOf(region.concept),
+        label: region.label,
+        colour: colourOf(region.label),
         path: polygons.map((p) => `M${p.map(([x, y]) => `${x} ${y}`).join('L')}Z`).join(''),
         labelStyle: labelStyleFor(minX, minY, maxX, maxY),
       },
@@ -86,24 +87,24 @@ const shapes = computed<Shape[]>(() =>
   }),
 );
 
-// One label per concept, on its highest-scoring region, keeps a phone-sized photo readable; the legend covers the rest.
+// One label per distinct label, on its highest-scoring region, keeps a phone-sized photo readable; the legend covers the rest.
 const labelledShapes = computed(() => {
   const best = new Map<string, Shape>();
   for (const shape of shapes.value) {
-    const current = best.get(shape.concept);
-    if (!current || props.regions[shape.key]!.score > props.regions[current.key]!.score) best.set(shape.concept, shape);
+    const current = best.get(shape.label);
+    if (!current || props.regions[shape.key]!.score > props.regions[current.key]!.score) best.set(shape.label, shape);
   }
   return [...best.values()];
 });
-function countOf(concept: string) {
-  return props.regions.filter((r) => r.concept === concept).length;
+function countOf(label: string) {
+  return props.regions.filter((r) => r.label === label).length;
 }
 
 const caption = computed(() => {
   const base = props.segmentation.isMock ? 'Demo highlights, pre-traced for this sample' : `Highlighted by ${props.segmentation.name}`;
   return props.fromVideo ? `Frame from your video · ${base}` : base;
 });
-const altText = computed(() => `${props.fromVideo ? 'A frame from your video' : 'Your photo'}, with possible damage highlighted: ${concepts.value.join(', ')}.`);
+const altText = computed(() => `${props.fromVideo ? 'A frame from your video' : 'Your photo'}, with possible damage highlighted: ${labels.value.join(', ')}.`);
 </script>
 
 <template>
@@ -170,21 +171,21 @@ const altText = computed(() => `${props.fromVideo ? 'A frame from your video' : 
           :style="{ ...shape.labelStyle, backgroundColor: shape.colour.label }"
           aria-hidden="true"
         >
-          {{ shape.concept }}
+          {{ shape.label }}
         </span>
       </div>
     </div>
 
     <figcaption class="px-4 pt-2.5 pb-3">
       <ul class="flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-medium text-stone-700" aria-label="Highlighted areas">
-        <li v-for="concept in concepts" :key="concept" class="inline-flex items-center gap-1.5">
+        <li v-for="label in labels" :key="label" class="inline-flex items-center gap-1.5">
           <span
             class="size-2.5 shrink-0 rounded-sm ring-1 ring-black/10"
-            :style="{ backgroundColor: colourOf(concept).fill }"
+            :style="{ backgroundColor: colourOf(label).fill }"
             aria-hidden="true"
           />
-          {{ concept }}
-          <span v-if="countOf(concept) > 1" class="font-normal text-stone-500">· {{ countOf(concept) }} areas</span>
+          {{ label }}
+          <span v-if="countOf(label) > 1" class="font-normal text-stone-500">· {{ countOf(label) }} areas</span>
         </li>
       </ul>
       <p class="mt-1 text-xs text-stone-500">{{ caption }} · approximate, not a diagnosis</p>

@@ -25,7 +25,7 @@ const delay = () => new Promise((resolve) => setTimeout(resolve, 600 + Math.rand
 function isUnrecognisedPhoto(s: Session): boolean {
   const o = s.observations;
   return !!o && o.confidence === 'low' && o.brandModelGuess === null && o.visibleCondition.length === 0 &&
-    o.possibleHazards.length === 0 && o.damageConcepts.length === 0;
+    o.possibleHazards.length === 0 && o.damageAreas.length === 0;
 }
 
 export const mockAssessmentProvider: AssessmentProvider = {
@@ -47,7 +47,7 @@ export const mockAssessmentProvider: AssessmentProvider = {
       brandModelGuess: null,
       visibleCondition: [],
       possibleHazards: [],
-      damageConcepts: [],
+      damageAreas: [],
       confidence: 'low',
     };
   },

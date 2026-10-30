@@ -41,12 +41,19 @@ export type AssistantTurn = z.infer<typeof AssistantTurnSchema>;
 // Image understanding
 // ---------------------------------------------------------------------------
 
+// SAM 3.1 finds parts, not defects, so what it outlines and what the user is told are separate.
+export const DamageAreaSchema = z.object({
+  part: z.string(), // the noun phrase SAM outlines, e.g. "phone screen"
+  label: z.string(), // what's wrong with it, shown on the outline, e.g. "display lines and dark patches"
+});
+export type DamageArea = z.infer<typeof DamageAreaSchema>;
+
 export const DeviceObservationsSchema = z.object({
   deviceType: z.string(), // e.g. "smartphone", or "unknown"
   brandModelGuess: z.string().nullable(),
   visibleCondition: z.array(z.string()), // e.g. ["cracked screen", "scuffed corners"]
   possibleHazards: z.array(z.string()), // e.g. ["back panel appears raised"]
-  damageConcepts: z.array(z.string()).max(4), // short noun phrases for SAM 3; may be empty for an undamaged device
+  damageAreas: z.array(DamageAreaSchema).max(4), // one per damaged part; may be empty for an undamaged device
   confidence: ConfidenceSchema,
 });
 export type DeviceObservations = z.infer<typeof DeviceObservationsSchema>;
@@ -54,7 +61,8 @@ export type DeviceObservations = z.infer<typeof DeviceObservationsSchema>;
 export const PointSchema = z.tuple([z.number(), z.number()]);
 
 export const DamageRegionSchema = z.object({
-  concept: z.string(), // e.g. "screen crack"
+  concept: z.string(), // the part SAM outlined, e.g. "phone screen"
+  label: z.string(), // what's wrong with it, e.g. "display lines"
   polygons: z.array(z.array(PointSchema)), // pixel coordinates in the uploaded image
   score: z.number().min(0).max(1),
 });

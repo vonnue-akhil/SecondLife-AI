@@ -1,4 +1,4 @@
-import type { AssistantTurn, DamageRegion, DeviceObservations, Resource } from '../../../shared/schemas';
+import type { AssistantTurn, DamageArea, DamageRegion, DeviceObservations, Resource } from '../../../shared/schemas';
 import type { Session } from '../services/session.store';
 
 /** An upload that passed validation. Held in memory for the current request only. */
@@ -32,7 +32,7 @@ export interface AssessmentProvider {
 export interface SegmentationProvider {
   name: string;
   isMock: boolean;
-  segment(image: PreparedImage, concepts: string[]): Promise<DamageRegion[]>;
+  segment(image: PreparedImage, areas: DamageArea[]): Promise<DamageRegion[]>;
 }
 
 /** Finds official web pages for a recommendation that the curated list does not cover. */

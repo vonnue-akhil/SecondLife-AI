@@ -154,8 +154,8 @@ async function drawCrackedPhoto(): Promise<{ photo: Photo; regions: DamageRegion
   return {
     photo: { url: URL.createObjectURL(blob), width: W, height: H },
     regions: [
-      { concept: 'screen crack', polygons: CRACKS.map((line) => strokePolygon(line, 16)), score: 0.91 },
-      { concept: 'dented corner', polygons: [cornerPolygon()], score: 0.74 },
+      { concept: 'screen crack', label: 'cracked screen', polygons: CRACKS.map((line) => strokePolygon(line, 16)), score: 0.91 },
+      { concept: 'dented corner', label: 'dented corner', polygons: [cornerPolygon()], score: 0.74 },
     ],
   };
 }

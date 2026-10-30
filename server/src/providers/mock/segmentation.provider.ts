@@ -5,10 +5,10 @@ import type { SegmentationProvider } from '../types';
 export const mockSegmentationProvider: SegmentationProvider = {
   name: 'Sample regions',
   isMock: true,
-  async segment(image, concepts) {
+  async segment(image, areas) {
     const sample = findSample(image.sha256);
     if (!sample) return [];
-    const wanted = new Set(concepts.map((c) => c.toLowerCase()));
+    const wanted = new Set(areas.map((a) => a.part.toLowerCase()));
     const matching = sample.regions.filter((r) => wanted.has(r.concept.toLowerCase()));
     return matching.length > 0 ? matching : sample.regions;
   },

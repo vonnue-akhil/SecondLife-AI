@@ -63,7 +63,7 @@ export function hazardTerms(text: string): string[] {
 const SWOLLEN_REGION = /(swollen|swelling|bulg|puff).{0,20}battery|battery.{0,20}(swollen|swelling|bulg|puff)/i;
 
 export function regionsShowHazard(regions: DamageRegion[]): boolean {
-  return regions.some((r) => r.score >= 0.5 && SWOLLEN_REGION.test(r.concept));
+  return regions.some((r) => r.score >= 0.5 && SWOLLEN_REGION.test(`${r.concept} . ${r.label}`));
 }
 
 /** True when anything the user said, the photo analysis or a highlighted region points to a battery or electrical hazard. */

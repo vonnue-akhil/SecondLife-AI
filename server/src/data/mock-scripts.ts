@@ -23,7 +23,7 @@ const BARE_SCREEN = /\b(screen|display)\b/i;
 /** Priority: swollen > cracked > dead > working > bare "screen" > fallback, so later answers don't flip the script. */
 export function chooseScript(hazard: boolean, userText: string, obs: DeviceObservations | null): ScriptId {
   if (hazard) return 'swollen';
-  const observed = obs ? [obs.deviceType, ...obs.visibleCondition, ...obs.possibleHazards, ...obs.damageConcepts].join(' . ') : '';
+  const observed = obs ? [obs.deviceType, ...obs.visibleCondition, ...obs.possibleHazards, ...obs.damageAreas.map((a) => a.label)].join(' . ') : '';
   const all = `${userText} . ${observed}`;
   if (unnegatedMatches(all, CRACKED).length > 0) return 'cracked';
   if (DEAD.test(all) || unnegatedMatches(all, WATER).length > 0) return 'dead';
